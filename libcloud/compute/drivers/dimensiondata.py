@@ -242,16 +242,29 @@ class DimensionDataNodeDriver(NodeDriver):
         response_code = findtext(body, 'responseCode', TYPES_URN)
         return response_code in ['IN_PROGRESS', 'OK']
 
-    def list_nodes(self):
+    def list_nodes(self, ex_network_domain=None):
         """
         List nodes deployed across all data center locations for your
         organization.
 
+        :param ex_network_domain: The network domain to filter to
+        :type  ex_network_domain: :class:`DimensionDataNetworkDomain`
+            or ``str``
+
         :return: a list of `Node` objects
         :rtype: ``list`` of :class:`Node`
         """
+        params = {}
+
+        if ex_network_domain is not None:
+            if isinstance(ex_network_domain, DimensionDataNetworkDomain):
+                params['networkDomainId'] = ex_network_domain.id
+            else:
+                params['networkDomainId'] = ex_network_domain
+
         nodes = self._to_nodes(
-            self.connection.request_with_orgId_api_2('server/server').object)
+            self.connection.request_with_orgId_api_2('server/server',
+                                                     params=params).object)
 
         return nodes
 
