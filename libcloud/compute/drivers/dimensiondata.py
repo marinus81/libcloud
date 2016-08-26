@@ -2379,6 +2379,9 @@ class DimensionDataNodeDriver(NodeDriver):
             % (datacenter_id, start_date, end_date))
         return self._format_csv(result.response)
 
+    def ex_test():
+        pprint("hello world")
+
     def _format_csv(self, http_response):
         text = http_response.read()
         lines = str.splitlines(ensure_string(text))
