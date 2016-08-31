@@ -17,6 +17,26 @@ General
 Compute
 ~~~~~~~
 
+- [gce] Fix image undeprecation in GCE
+  (GITHUB-852)
+  [Max Illfelder]
+
+- [gce] Added Managed Instance Groups
+  (GITHUB-842)
+  [Tom Melendez]
+
+- [gce] Allow undeprecation of an image.
+  (GITHUB-851)
+  [Max Illfelder]
+
+- [cloudstack] BUGFIX Values with wildcards failed signature validation
+  (GITHUB-846)
+  [Ronald van Zantvoot]
+
+- [cloudstack] Added StorageState-Migrating to the cloudstack driver.
+  (GITHUB-847)
+  [Marc-Aurèle Brothier]
+
 - [google compute] Update copy image logic to match create image.
   (GITHUB-828)
   [Max Illfelder]
