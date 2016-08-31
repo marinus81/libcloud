@@ -1121,7 +1121,8 @@ class DimensionDataNodeDriver(NodeDriver):
                        name,
                        private_ipv4_base_address,
                        description=None,
-                       private_ipv4_prefix_size=24):
+                       private_ipv4_prefix_size=24,
+                       gateway_addressing='LOW'):
         """
         Deploy a new VLAN to a network domain
 
@@ -1142,6 +1143,9 @@ class DimensionDataNodeDriver(NodeDriver):
             address space, e.g 24
         :type       private_ipv4_prefix_size: ``int``
 
+        :param      gateway_addressing: Identify VLAN gateway addressing
+                    e.g 'LOW' or 'HIGH': ``str``
+
         :return: an instance of `DimensionDataVlan`
         :rtype: :class:`DimensionDataVlan`
         """
@@ -1154,6 +1158,8 @@ class DimensionDataNodeDriver(NodeDriver):
             private_ipv4_base_address
         ET.SubElement(create_node, "privateIpv4PrefixSize").text = \
             str(private_ipv4_prefix_size)
+        ET.SubElement(create_node, "gatewayAddressing").text = \
+            str(gateway_addressing)
 
         response = self.connection.request_with_orgId_api_2(
             'network/deployVlan',
@@ -2379,8 +2385,8 @@ class DimensionDataNodeDriver(NodeDriver):
             % (datacenter_id, start_date, end_date))
         return self._format_csv(result.response)
 
-    def ex_test():
-        pprint("hello world")
+    def ex_test(self):
+        return "hello world"
 
     def _format_csv(self, http_response):
         text = http_response.read()
@@ -2683,7 +2689,8 @@ class DimensionDataNodeDriver(NodeDriver):
                 'ipv6GatewayAddress',
                 TYPES_URN),
             location=location,
-            status=findtext(element, 'state', TYPES_URN))
+            status=findtext(element, 'state', TYPES_URN),
+            gateway_addressing=findtext(element, 'gatewayAddressing', TYPES_URN))
 
     def _to_locations(self, object):
         locations = []

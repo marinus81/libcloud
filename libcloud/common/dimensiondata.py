@@ -373,7 +373,7 @@ class DimensionDataConnection(ConnectionUserAndKey):
     api_path_version_1 = '/oec'
     api_path_version_2 = '/caas'
     api_version_1 = '0.9'
-    api_version_2 = '2.2'
+    api_version_2 = '2.3'
 
     _orgId = None
     responseCls = DimensionDataResponse
@@ -881,7 +881,7 @@ class DimensionDataVlan(object):
     def __init__(self, id, name, description, location, network_domain,
                  status, private_ipv4_range_address, private_ipv4_range_size,
                  ipv6_range_address, ipv6_range_size, ipv4_gateway,
-                 ipv6_gateway):
+                 ipv6_gateway, gateway_addressing):
         """
         Initialize an instance of ``DimensionDataVlan``
 
@@ -924,6 +924,10 @@ class DimensionDataVlan(object):
 
         :param ipv6_gateway: The IPv6 default gateway address
         :type  ipv6_gateway: ``str``
+
+        :param gateway_addressing: Gateway addressing. E.g. 'LOW', 'HIGH'
+        :type  gateway_addressing: ``str``
+
         """
         self.id = str(id)
         self.name = name
@@ -937,12 +941,13 @@ class DimensionDataVlan(object):
         self.ipv6_range_size = ipv6_range_size
         self.ipv4_gateway = ipv4_gateway
         self.ipv6_gateway = ipv6_gateway
+        self.gateway_addressing = gateway_addressing
 
     def __repr__(self):
         return (('<DimensionDataVlan: id=%s, name=%s, '
-                 'description=%s, location=%s, status=%s>')
+                 'description=%s, location=%s, status=%s, gateway_addressing=%s>')
                 % (self.id, self.name, self.description,
-                   self.location, self.status))
+                   self.location, self.status, self.gateway_addressing))
 
 
 class DimensionDataPool(object):
