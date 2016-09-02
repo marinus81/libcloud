@@ -38,6 +38,8 @@ from libcloud.common.dimensiondata import DimensionDataFirewallRule
 from libcloud.common.dimensiondata import DimensionDataFirewallAddress
 from libcloud.common.dimensiondata import DimensionDataNatRule
 from libcloud.common.dimensiondata import DimensionDataAntiAffinityRule
+from libcloud.common.dimensiondata import DimensionDataIpAddressList
+from libcloud.common.dimensiondata import DimensionDataIpAddress
 from libcloud.common.dimensiondata import NetworkDomainServicePlan
 from libcloud.common.dimensiondata import DimensionDataTagKey
 from libcloud.common.dimensiondata import DimensionDataTag
@@ -2385,8 +2387,26 @@ class DimensionDataNodeDriver(NodeDriver):
             % (datacenter_id, start_date, end_date))
         return self._format_csv(result.response)
 
-    def ex_test(self):
-        return "hello world"
+    def ex_list_ip_address_list(self, ex_network_domain_id):
+        """
+        List IP Address List for network domain specified
+
+
+        keyword    ex_network_domain:  Network Domain to create the node
+                                        (required unless using network
+                                        or ex_primary_ipv4)
+        :type       ex_network_domain_id: :class:`DimensionDataNetworkDomain`
+                                        or ``str``
+
+        :return: a list of DimensionDataNetwork objects
+        :rtype: ``list`` of :class:`DimensionDataNetwork`
+        """
+        params = {}
+        # params['networkDomainId'] = self._network_domain_to_network_domain_id(ex_network_domain)
+        params['networkDomainId'] = ex_network_domain_id
+        response = self.connection.request_with_orgId_api_2(
+            'network/ipAddressList', params=params).object
+        return self._to_ip_address_lists(response)
 
     def _format_csv(self, http_response):
         text = http_response.read()
@@ -2837,6 +2857,35 @@ class DimensionDataNodeDriver(NodeDriver):
                                     'failureReason',
                                     TYPES_URN))
         return s
+
+    def _to_ip_address_lists(self, object):
+        ip_address_lists = []
+        for element in findall(object, 'ipAddressList', TYPES_URN):
+            ip_address_lists.append(self._to_ip_address_list(element))
+
+        return ip_address_lists
+
+    def _to_ip_address_list(self, element):
+        ipAddresses = []
+        for ip in findall(element, 'ipAddress', TYPES_URN):
+            ipAddresses.append(self._to_ip_address(ip))
+
+        return DimensionDataIpAddressList(
+            id=element.get('id'),
+            name=findtext(element, 'name', TYPES_URN),
+            description=findtext(element, 'description', TYPES_URN),
+            ip_version=findtext(element, 'ipVersion', TYPES_URN),
+            ip_address_collection=ipAddresses,
+            state=findtext(element, 'state', TYPES_URN),
+            create_time=findtext(element, 'createTime', TYPES_URN)
+        )
+
+    def _to_ip_address(self, element):
+        return DimensionDataIpAddress(
+            begin=element.get('begin'),
+            end=element.get('end'),
+            prefix_size=element.get('prefixSize')
+        )
 
     def _image_needs_auth(self, image):
         if not isinstance(image, NodeImage):
