@@ -2479,6 +2479,70 @@ class DimensionDataNodeDriver(NodeDriver):
         response_code = findtext(response, 'responseCode', TYPES_URN)
         return response_code in ['IN_PROGRESS', 'OK']
 
+    def ex_edit_ip_address_list(self, ex_ip_address_list_id, description,
+                                ip_address_collection, child_ip_address_list_id=None):
+        """
+        Edit IP Address List. IP Address list.
+
+        keyword    ex_ip_address_list_id:  ID of the IP Address List to be edited
+                                        (required)
+        :type      ex_ip_address_list_id: :``str``
+
+        keyword    description:  IP Address List Description
+        :type      description: :``str``
+
+        keyword    ip_address_collection:  List of IP Address
+        :type      ip_address_collection: :``str``
+
+        keyword    child_ip_address_list_id:  Child IP Address List to be included in this IP Address List
+        :type      child_ip_address_list_id: :``str``
+
+        :return: a list of DimensionDataIpAddressList objects
+        :rtype: ``list`` of :class:`DimensionDataIpAddressList`
+        """
+        edit_ip_address_list = ET.Element('editIpAddressList', {'xmlns': TYPES_URN,
+                                                                "id": ex_ip_address_list_id,
+                                                                'xmlns:xsi': "http://www.w3.org/2001/XMLSchema-instance"
+                                                                })
+
+        ET.SubElement(
+            edit_ip_address_list,
+            'description'
+        ).text = description
+
+        for ip in ip_address_collection:
+            ip_address = ET.SubElement(
+                edit_ip_address_list,
+                'ipAddress',
+            )
+            ip_address.set('begin', ip.begin)
+
+            if ip.end:
+                ip_address.set('end', ip.end)
+
+            if ip.prefix_size:
+                ip_address.set('prefixSize', ip.prefix_size)
+
+        if child_ip_address_list_id:
+            ET.SubElement(
+                edit_ip_address_list,
+                'childIpAddressListId'
+            ).text = child_ip_address_list_id
+        else:
+            ET.SubElement(
+                edit_ip_address_list,
+                'childIpAddressListId',
+                {'xsi:nil': 'true'}
+            )
+
+        response = self.connection.request_with_orgId_api_2(
+            'network/editIpAddressList',
+            method='POST',
+            data=ET.tostring(edit_ip_address_list)).object
+
+        response_code = findtext(response, 'responseCode', TYPES_URN)
+        return response_code in ['IN_PROGRESS', 'OK']
+
     def ex_delete_ip_address_list(self, ex_ip_address_list_id):
         """
         Delete IP Address List by ID
