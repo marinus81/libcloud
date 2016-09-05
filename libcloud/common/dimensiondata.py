@@ -1560,7 +1560,7 @@ class DimensionDataIpAddress(object):
     """
     A representation of IP Address in Dimension Data
     """
-    def __init__(self, begin, end, prefix_size):
+    def __init__(self, begin, end=None, prefix_size=None):
         """
         Initialize an instance of :class:`DimensionDataIpAddress`
 

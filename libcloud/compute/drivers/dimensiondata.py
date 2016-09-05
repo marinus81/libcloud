@@ -214,8 +214,8 @@ class DimensionDataNodeDriver(NodeDriver):
                 password = auth_obj.password
 
         if (ex_network_domain is None and
-                ex_network is None and
-                ex_primary_ipv4 is None):
+                    ex_network is None and
+                    ex_primary_ipv4 is None):
             raise ValueError("One of ex_network_domain, ex_network, "
                              "or ex_ipv6_primary must be specified")
 
@@ -398,13 +398,13 @@ class DimensionDataNodeDriver(NodeDriver):
         """
         node_list = []
         for nodes in self.ex_list_nodes_paginated(
-                location=ex_location,
-                name=ex_name, ipv6=ex_ipv6,
-                ipv4=ex_ipv4, vlan=ex_vlan,
-                image=ex_image, deployed=ex_deployed,
-                started=ex_started, state=ex_state,
-                network=ex_network,
-                network_domain=ex_network_domain):
+            location=ex_location,
+            name=ex_name, ipv6=ex_ipv6,
+            ipv4=ex_ipv4, vlan=ex_vlan,
+            image=ex_image, deployed=ex_deployed,
+            started=ex_started, state=ex_state,
+            network=ex_network,
+            network_domain=ex_network_domain):
             node_list.extend(nodes)
 
         return node_list
@@ -432,7 +432,7 @@ class DimensionDataNodeDriver(NodeDriver):
             self.connection.request_with_orgId_api_2(
                 'image/osImage',
                 params=params)
-            .object)
+                .object)
 
     def list_sizes(self, location=None):
         """
@@ -469,7 +469,7 @@ class DimensionDataNodeDriver(NodeDriver):
 
         return self._to_locations(
             self.connection
-            .request_with_orgId_api_2(
+                .request_with_orgId_api_2(
                 'infrastructure/datacenter',
                 params=params
             ).object
@@ -493,8 +493,8 @@ class DimensionDataNodeDriver(NodeDriver):
 
         return self._to_networks(
             self.connection
-            .request_with_orgId_api_1('networkWithLocation%s' % url_ext)
-            .object)
+                .request_with_orgId_api_1('networkWithLocation%s' % url_ext)
+                .object)
 
     def ex_list_nodes_paginated(self, name=None, location=None,
                                 ipv6=None, ipv4=None, vlan=None,
@@ -1231,7 +1231,7 @@ class DimensionDataNodeDriver(NodeDriver):
         """
         edit_node = ET.Element('expandVlan', {'xmlns': TYPES_URN})
         edit_node.set('id', vlan.id)
-        ET.SubElement(edit_node, "privateIpv4PrefixSize").text =\
+        ET.SubElement(edit_node, "privateIpv4PrefixSize").text = \
             vlan.private_ipv4_range_size
 
         self.connection.request_with_orgId_api_2(
@@ -1302,12 +1302,12 @@ class DimensionDataNodeDriver(NodeDriver):
             params['state'] = state
         response = self.connection.request_with_orgId_api_2('network/vlan',
                                                             params=params) \
-                                  .object
+            .object
         return self._to_vlans(response)
 
     def ex_add_public_ip_block_to_network_domain(self, network_domain):
         add_node = ET.Element('addPublicIpBlock', {'xmlns': TYPES_URN})
-        ET.SubElement(add_node, "networkDomainId").text =\
+        ET.SubElement(add_node, "networkDomainId").text = \
             network_domain.id
 
         response = self.connection.request_with_orgId_api_2(
@@ -1947,7 +1947,7 @@ class DimensionDataNodeDriver(NodeDriver):
             self.connection.request_with_orgId_api_2(
                 'image/customerImage',
                 params=params)
-            .object, 'customerImage')
+                .object, 'customerImage')
 
     def ex_get_base_image_by_id(self, id):
         """
@@ -2389,24 +2389,118 @@ class DimensionDataNodeDriver(NodeDriver):
 
     def ex_list_ip_address_list(self, ex_network_domain_id):
         """
-        List IP Address List for network domain specified
+        List IP Address List by network domain ID specified
 
 
-        keyword    ex_network_domain:  Network Domain to create the node
-                                        (required unless using network
-                                        or ex_primary_ipv4)
-        :type       ex_network_domain_id: :class:`DimensionDataNetworkDomain`
-                                        or ``str``
+        keyword    ex_network_domain_id:  Network Domain ID to create IP Address List
+                                        (required)
+        :type       ex_network_domain_id: :``str``
 
-        :return: a list of DimensionDataNetwork objects
-        :rtype: ``list`` of :class:`DimensionDataNetwork`
+        :return: a list of DimensionDataIpAddressList objects
+        :rtype: ``list`` of :class:`DimensionDataIpAddressList`
         """
-        params = {}
-        # params['networkDomainId'] = self._network_domain_to_network_domain_id(ex_network_domain)
-        params['networkDomainId'] = ex_network_domain_id
+        params = {'networkDomainId': ex_network_domain_id}
         response = self.connection.request_with_orgId_api_2(
             'network/ipAddressList', params=params).object
         return self._to_ip_address_lists(response)
+
+    def ex_create_ip_address_list(self, ex_network_domain_id, name, description,
+                                  ip_version, ip_address_collection, child_ip_address_list_id=None):
+        """
+        Create IP Address List. IP Address list.
+
+        keyword    ex_network_domain_id:  Network Domain ID to create IP Address List
+                                        (required)
+        :type      ex_network_domain_id: :``str``
+
+        keyword    name:  IP Address List Name
+        :type      name: :``str``
+
+        keyword    description:  IP Address List Description
+        :type      description: :``str``
+
+        keyword    ip_version:  IP Version of ip address
+        :type      ip_version: :``str``
+
+        keyword    ip_address_collection:  List of IP Address
+        :type      ip_address_collection: :``str``
+
+        keyword    child_ip_address_list_id:  Child IP Address List to be included in this IP Address List
+        :type      child_ip_address_list_id: :``str``
+
+        :return: a list of DimensionDataIpAddressList objects
+        :rtype: ``list`` of :class:`DimensionDataIpAddressList`
+        """
+        create_ip_address_list = ET.Element('createIpAddressList', {'xmlns': TYPES_URN})
+        ET.SubElement(
+            create_ip_address_list,
+            'networkDomainId'
+        ).text = ex_network_domain_id
+
+        ET.SubElement(
+            create_ip_address_list,
+            'name'
+        ).text = name
+
+        ET.SubElement(
+            create_ip_address_list,
+            'description'
+        ).text = description
+
+        ET.SubElement(
+            create_ip_address_list,
+            'ipVersion'
+        ).text = ip_version
+
+        for ip in ip_address_collection:
+            ip_address = ET.SubElement(
+                create_ip_address_list,
+                'ipAddress',
+            )
+            ip_address.set('begin', ip.begin)
+
+            if ip.end:
+                ip_address.set('end', ip.end)
+
+            if ip.prefix_size:
+                ip_address.set('prefixSize', ip.prefix_size)
+
+        if child_ip_address_list_id:
+            ET.SubElement(
+                create_ip_address_list,
+                'childIpAddressListId'
+            ).text = child_ip_address_list_id
+
+        response = self.connection.request_with_orgId_api_2(
+            'network/createIpAddressList',
+            method='POST',
+            data=ET.tostring(create_ip_address_list)).object
+
+        response_code = findtext(response, 'responseCode', TYPES_URN)
+        return response_code in ['IN_PROGRESS', 'OK']
+
+    def ex_delete_ip_address_list(self, ex_ip_address_list_id):
+        """
+        Delete IP Address List by ID
+
+        keyword    ex_ip_address_list_id:  IP Address List ID to delete
+                                        (required)
+        :type       ex_ip_address_list_id: :``str``
+
+        :return: a list of DimensionDataIpAddressList objects
+        :rtype: ``list`` of :class:`DimensionDataIpAddressList`
+        """
+
+        delete_ip_address_list = ET.Element('deleteIpAddressList',
+                                            {'xmlns': TYPES_URN, 'id': ex_ip_address_list_id})
+
+        response = self.connection.request_with_orgId_api_2(
+            'network/deleteIpAddressList',
+            method='POST',
+            data=ET.tostring(delete_ip_address_list)).object
+
+        response_code = findtext(response, 'responseCode', TYPES_URN)
+        return response_code in ['IN_PROGRESS', 'OK']
 
     def _format_csv(self, http_response):
         text = http_response.read()
@@ -2774,7 +2868,7 @@ class DimensionDataNodeDriver(NodeDriver):
             'networkId': findtext(element, 'networkId', TYPES_URN),
             'networkDomainId':
                 element.find(fixxpath('networkInfo', TYPES_URN))
-                .get('networkDomainId')
+                    .get('networkDomainId')
                 if has_network_info else None,
             'datacenterId': element.get('datacenterId'),
             'deployedTime': findtext(element, 'createTime', TYPES_URN),
