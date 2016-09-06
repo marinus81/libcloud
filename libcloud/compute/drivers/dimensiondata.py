@@ -40,6 +40,8 @@ from libcloud.common.dimensiondata import DimensionDataNatRule
 from libcloud.common.dimensiondata import DimensionDataAntiAffinityRule
 from libcloud.common.dimensiondata import DimensionDataIpAddressList
 from libcloud.common.dimensiondata import DimensionDataIpAddress
+from libcloud.common.dimensiondata import DimensionDataPortList
+from libcloud.common.dimensiondata import DimensionDataPort
 from libcloud.common.dimensiondata import NetworkDomainServicePlan
 from libcloud.common.dimensiondata import DimensionDataTagKey
 from libcloud.common.dimensiondata import DimensionDataTag
@@ -2392,9 +2394,9 @@ class DimensionDataNodeDriver(NodeDriver):
         List IP Address List by network domain ID specified
 
 
-        keyword    ex_network_domain_id:  Network Domain ID to create IP Address List
+        keyword    ex_network_domain_id:  Network Domain ID to get ip address list
                                         (required)
-        :type       ex_network_domain_id: :``str``
+        :type      ex_network_domain_id: :``str``
 
         :return: a list of DimensionDataIpAddressList objects
         :rtype: ``list`` of :class:`DimensionDataIpAddressList`
@@ -2404,12 +2406,31 @@ class DimensionDataNodeDriver(NodeDriver):
             'network/ipAddressList', params=params).object
         return self._to_ip_address_lists(response)
 
+    def ex_get_ip_address_list(self, ex_network_domain_id, ex_ip_address_list_name):
+        """
+        Get IP Address List by name in network domain specified
+
+        keyword    ex_network_domain_id:  Network Domain ID to create IP Address List
+                                        (required)
+        :type      ex_network_domain_id: :``str``
+
+        keyword    ex_ip_address_list_name:  Get 'IP Address List' by name
+                                        (required)
+        :type      ex_ip_address_list_name: :``str``
+
+        :return: a list of DimensionDataIpAddressList objects
+        :rtype: ``list`` of :class:`DimensionDataIpAddressList`
+        """
+
+        ip_address_lists = self.ex_list_ip_address_list(ex_network_domain_id)
+        return list(filter(lambda x: x.name == ex_ip_address_list_name, ip_address_lists))
+
     def ex_create_ip_address_list(self, ex_network_domain_id, name, description,
                                   ip_version, ip_address_collection, child_ip_address_list_id=None):
         """
         Create IP Address List. IP Address list.
 
-        keyword    ex_network_domain_id:  Network Domain ID to create IP Address List
+        keyword    ex_network_domain_id:  Network Domain ID to create IP Address List in
                                         (required)
         :type      ex_network_domain_id: :``str``
 
@@ -2551,8 +2572,7 @@ class DimensionDataNodeDriver(NodeDriver):
                                         (required)
         :type       ex_ip_address_list_id: :``str``
 
-        :return: a list of DimensionDataIpAddressList objects
-        :rtype: ``list`` of :class:`DimensionDataIpAddressList`
+        :rtype: ``bool``
         """
 
         delete_ip_address_list = ET.Element('deleteIpAddressList',
@@ -2562,6 +2582,192 @@ class DimensionDataNodeDriver(NodeDriver):
             'network/deleteIpAddressList',
             method='POST',
             data=ET.tostring(delete_ip_address_list)).object
+
+        response_code = findtext(response, 'responseCode', TYPES_URN)
+        return response_code in ['IN_PROGRESS', 'OK']
+
+    def ex_list_port_list(self, ex_network_domain_id):
+        """
+        List Port List by network domain ID specified
+
+
+        keyword    ex_network_domain_id:  Network Domain ID to create Port List
+                                        (required)
+        :type       ex_network_domain_id: :``str``
+
+        :return: a list of DimensionDataPortList objects
+        :rtype: ``list`` of :class:`DimensionDataPortList`
+        """
+        params = {'networkDomainId': ex_network_domain_id}
+        response = self.connection.request_with_orgId_api_2(
+            'network/portList', params=params).object
+        return self._to_port_lists(response)
+
+    def ex_get_port_list(self, ex_network_domain_id, ex_port_list_name):
+        """
+        Get Port List by name
+
+        keyword    ex_network_domain_id:  Network Domain ID to create Port List
+                                        (required)
+        :type      ex_network_domain_id: :``str``
+
+        keyword    ex_port_list_name:  Port list name
+                                        (required)
+        :type      ex_port_list_name: :``str``
+
+        :return:  DimensionDataPortList object
+        :rtype:  :class:`DimensionDataPort`
+        """
+
+        portLists = self.ex_list_port_list(ex_network_domain_id)
+
+        return list(filter(lambda x: x.name == ex_port_list_name, portLists))
+
+    def ex_create_port_list(self, ex_network_domain_id, name, description,
+                            port_collection, child_port_list_id=None):
+        """
+        Create Port List.
+
+        keyword    ex_network_domain_id:  Create Port List in this domain
+                                        (required)
+        :type      ex_network_domain_id: :``str``
+
+        keyword    name:  Port List Name
+        :type      name: :``str``
+
+        keyword    description:  IP Address List Description
+        :type      description: :``str``
+
+        keyword    port_collection:  List of Port Address
+        :type      port_collection: :``str``
+
+        keyword    child_port_list_id:  Child Port List to be included in this Port List
+        :type      child_port_list_id: :``str``
+
+        :return: a list of DimensionDataPortList objects
+        :rtype: ``list`` of :class:`DimensionDataPortList`
+        """
+        new_port_list = ET.Element('createPortList', {'xmlns': TYPES_URN})
+        ET.SubElement(
+            new_port_list,
+            'networkDomainId'
+        ).text = ex_network_domain_id
+
+        ET.SubElement(
+            new_port_list,
+            'name'
+        ).text = name
+
+        ET.SubElement(
+            new_port_list,
+            'description'
+        ).text = description
+
+        for port in port_collection:
+            p = ET.SubElement(
+                new_port_list,
+                'port'
+            )
+            p.set('begin', port.begin)
+
+            if port.end:
+                p.set('end', port.end)
+
+        if child_port_list_id:
+            ET.SubElement(
+                new_port_list,
+                'childPortListId'
+            ).text = child_port_list_id
+
+        response = self.connection.request_with_orgId_api_2(
+            'network/createPortList',
+            method='POST',
+            data=ET.tostring(new_port_list)).object
+
+        response_code = findtext(response, 'responseCode', TYPES_URN)
+        return response_code in ['IN_PROGRESS', 'OK']
+
+    def ex_edit_port_list(self, ex_port_list_id, description,
+                                port_collection, child_port_list_id=None):
+        """
+        Edit Port List.
+
+        keyword    ex_port_list_id:  ID of the Port List to be edited
+                                        (required)
+        :type      ex_port_list_id: :``str``
+
+        keyword    description:  Port List Description
+        :type      description: :``str``
+
+        keyword    port_collection:  List of Port Address
+        :type      port_collection: :``str``
+
+        keyword    child_port_list_id:  Child Port List to be included in this IP Address List
+        :type      child_port_list_id: :``str``
+
+        :return: a list of DimensionDataIpAddressList objects
+        :rtype: ``list`` of :class:`DimensionDataIpAddressList`
+        """
+
+        existing_port_address_list = ET.Element('editPortList',
+                                                {"id": ex_port_list_id,
+                                                 'xmlns': TYPES_URN,
+                                                 'xmlns:xsi': "http://www.w3.org/2001/XMLSchema-instance"
+                                                 })
+
+        ET.SubElement(
+            existing_port_address_list,
+            'description'
+        ).text = description
+
+        for port in port_collection:
+            p = ET.SubElement(
+                existing_port_address_list,
+                'port'
+            )
+            p.set('begin', port.begin)
+
+            if port.end:
+                p.set('end', port.end)
+
+        if child_port_list_id:
+            ET.SubElement(
+                existing_port_address_list,
+                'childPortListId'
+            ).text = child_port_list_id
+        else:
+            ET.SubElement(
+                existing_port_address_list,
+                'childPortListId',
+                {'xsi:nil': 'true'}
+            )
+
+        response = self.connection.request_with_orgId_api_2(
+            'network/editPortList',
+            method='POST',
+            data=ET.tostring(existing_port_address_list)).object
+
+        response_code = findtext(response, 'responseCode', TYPES_URN)
+        return response_code in ['IN_PROGRESS', 'OK']
+
+    def ex_delete_port_list(self, ex_port_list_id):
+        """
+        Delete Port List by ID
+
+        keyword    ex_port_list_id:  Port List ID to delete
+                                        (required)
+        :type       ex_port_list_id: :``str``
+
+        :rtype: ``bool``
+        """
+
+        delete_port_list = ET.Element('deletePortList',
+                                            {'xmlns': TYPES_URN, 'id': ex_port_list_id})
+
+        response = self.connection.request_with_orgId_api_2(
+            'network/deletePortList',
+            method='POST',
+            data=ET.tostring(delete_port_list)).object
 
         response_code = findtext(response, 'responseCode', TYPES_URN)
         return response_code in ['IN_PROGRESS', 'OK']
@@ -3043,6 +3249,33 @@ class DimensionDataNodeDriver(NodeDriver):
             begin=element.get('begin'),
             end=element.get('end'),
             prefix_size=element.get('prefixSize')
+        )
+
+    def _to_port_lists(self, object):
+        port_lists = []
+        for element in findall(object, 'portList', TYPES_URN):
+            port_lists.append(self._to_port_list(element))
+
+        return port_lists
+
+    def _to_port_list(self, element):
+        ports = []
+        for port in findall(element, 'port', TYPES_URN):
+            ports.append(self._to_port(port))
+
+        return DimensionDataPortList(
+            id=element.get('id'),
+            name=findtext(element, 'name', TYPES_URN),
+            description=findtext(element, 'description', TYPES_URN),
+            port_collection=ports,
+            state=findtext(element, 'state', TYPES_URN),
+            create_time=findtext(element, 'createTime', TYPES_URN)
+        )
+
+    def _to_port(self, element):
+        return DimensionDataPort(
+            begin=element.get('begin'),
+            end=element.get('end')
         )
 
     def _image_needs_auth(self, image):

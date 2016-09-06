@@ -1580,3 +1580,67 @@ class DimensionDataIpAddress(object):
     def __repr__(self):
         return ('<DimensionDataIpAddress: begin=%s, end=%s, prefix_size=%s>'
                 % (self.begin, self.end, self.prefix_size))
+
+
+class DimensionDataPortList(object):
+    """
+    DimensionData Port list
+    """
+
+    def __init__(self, id, name, description, port_collection,
+                 state, create_time):
+        """"
+        Initialize an instance of :class:`DimensionDataPortList`
+
+        :param id: GUID of the Port List key
+        :type  id: ``str``
+
+        :param name: Name of the Port List
+        :type  name: ``str``
+
+        :param description: Description of the Port List
+        :type  description: ``str``
+
+        :param port_collection: Collection of DimensionDataPort
+        :type  port_collection: ``List``
+
+        :param state: Port list state
+        :type  state: ``str``
+
+        :param create_time: Port List created time
+        :type  create_time: ``date time``
+        """
+        self.id = id
+        self.name = name
+        self.description = description
+        self.port_collection = port_collection
+        self.state = state
+        self.create_time = create_time
+
+    def __repr__(self):
+        return ('<DimensionDataPortList: id=%s, name=%s, description=%s, port_collection=%s, state=%s, create_time=%s>'
+                % (self.id, self.name, self.description,
+                   self.port_collection, self.state, self.create_time))
+
+
+class DimensionDataPort(object):
+    """
+    A representation of Port in Dimension Data
+    """
+
+    def __init__(self, begin, end=None):
+        """
+        Initialize an instance of :class:`DimensionDataPort`
+
+        :param begin: Port Number Begin
+        :type  begin: ``str``
+
+        :param end: Port Number end
+        :type  end: ``str``
+        """
+        self.begin = begin
+        self.end = end
+
+    def __repr__(self):
+        return ('<DimensionDataPort: begin=%s, end=%s>'
+                % (self.begin, self.end))
