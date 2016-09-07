@@ -486,7 +486,7 @@ class DimensionDataConnection(ConnectionUserAndKey):
         paged_resp = paged_resp or {}
 
         while int(paged_resp.get('pageCount')) >= \
-                int(paged_resp.get('pageSize')):
+            int(paged_resp.get('pageSize')):
             params['pageNumber'] = int(paged_resp.get('pageNumber')) + 1
             paged_resp = self.request_with_orgId_api_2(action, params,
                                                        data, headers,
@@ -589,6 +589,7 @@ class DimensionDataAccountDetails(object):
     """
     Dimension Data account class details
     """
+
     def __init__(self, user_name, full_name, first_name, last_name, email):
         self.user_name = user_name
         self.full_name = full_name
@@ -603,6 +604,7 @@ class DimensionDataStatus(object):
         action, request_time, user_name, number_of_steps, update_time,
         step.name, step.number, step.percent_complete, failure_reason,
     """
+
     def __init__(self, action=None, request_time=None, user_name=None,
                  number_of_steps=None, update_time=None, step_name=None,
                  step_number=None, step_percent_complete=None,
@@ -696,6 +698,7 @@ class DimensionDataServerCpuSpecification(object):
     A class that represents the specification of the CPU(s) for a
     node
     """
+
     def __init__(self, cpu_count, cores_per_socket, performance):
         """
         Instantiate a new :class:`DimensionDataServerCpuSpecification`
@@ -725,6 +728,7 @@ class DimensionDataServerDisk(object):
     """
     A class that represents the disk on a server
     """
+
     def __init__(self, id, scsi_id, size_gb, speed, state):
         """
         Instantiate a new :class:`DimensionDataServerDisk`
@@ -760,6 +764,7 @@ class DimensionDataServerVMWareTools(object):
     """
     A class that represents the VMWareTools for a node
     """
+
     def __init__(self, status, version_status, api_version):
         """
         Instantiate a new :class:`DimensionDataServerVMWareTools` object
@@ -820,22 +825,33 @@ class DimensionDataFirewallAddress(object):
     """
     The source or destination model in a firewall rule
     """
+
     def __init__(self, any_ip, ip_address, ip_prefix_size,
                  port_begin, port_end, address_list_id,
                  port_list_id):
         self.any_ip = any_ip
         self.ip_address = ip_address
         self.ip_prefix_size = ip_prefix_size
+        self.port_list_id = port_list_id
         self.port_begin = port_begin
         self.port_end = port_end
         self.address_list_id = address_list_id
         self.port_list_id = port_list_id
+
+    def __repr__(self):
+        return (
+            '<DimensionDataFirewallAddress: any_ip=%s, ip_address=%s, ip_prefix_size=%s, port_begin=%s, port_end=%s, '
+            'address_list_id=%s, port_list_id=%s>'
+            % (self.any_ip, self.ip_address, self.ip_prefix_size,
+               self.port_begin, self.port_end, self.address_list_id,
+               self.port_list_id))
 
 
 class DimensionDataNatRule(object):
     """
     An IP NAT rule in a network domain
     """
+
     def __init__(self, id, network_domain, internal_ip, external_ip, status):
         self.id = id
         self.network_domain = network_domain
@@ -855,6 +871,7 @@ class DimensionDataAntiAffinityRule(object):
     An Anti-Affinity rule ensures that servers in the rule will
     not reside on the same VMware ESX host.
     """
+
     def __init__(self, id, node_list):
         """
         Instantiate a new :class:`DimensionDataAntiAffinityRule`
@@ -1117,6 +1134,7 @@ class DimensionDataDefaultHealthMonitor(object):
     """
     A default health monitor for a VIP (node, pool or listener)
     """
+
     def __init__(self, id, name, node_compatible, pool_compatible):
         """
         Initialize an instance of :class:`DimensionDataDefaultHealthMonitor`
@@ -1150,6 +1168,7 @@ class DimensionDataPersistenceProfile(object):
     compatible and whether or not it is compatible as a
     Fallback Persistence Profile.
     """
+
     def __init__(self, id, name, compatible_listeners, fallback_compatible):
         """
         Initialize an instance of :class:`DimensionDataPersistenceProfile`
@@ -1181,6 +1200,7 @@ class DimensionDataDefaultiRule(object):
     """
     A default iRule for a network domain, can be applied to a listener
     """
+
     def __init__(self, id, name, compatible_listeners):
         """
         Initialize an instance of :class:`DimensionDataDefaultiRule`
@@ -1210,6 +1230,7 @@ class DimensionDataVirtualListenerCompatibility(object):
     specifies which virtual listener types this profile or iRule can be
     applied to.
     """
+
     def __init__(self, type, protocol):
         self.type = type
         self.protocol = protocol
@@ -1257,6 +1278,7 @@ class DimensionDataBackupClient(object):
     """
     An object that represents a backup client
     """
+
     def __init__(self, id, type, status,
                  schedule_policy, storage_policy, download_url,
                  alert=None, running_job=None):
@@ -1310,6 +1332,7 @@ class DimensionDataBackupClientAlert(object):
     """
     An alert for a backup client
     """
+
     def __init__(self, trigger, notify_list=[]):
         """
         Initialize an instance of :class:`DimensionDataBackupClientAlert`
@@ -1333,6 +1356,7 @@ class DimensionDataBackupClientRunningJob(object):
     """
     A running job for a given backup client
     """
+
     def __init__(self, id, status, percentage=0):
         """
         Initialize an instance of :class:`DimensionDataBackupClientRunningJob`
@@ -1359,6 +1383,7 @@ class DimensionDataBackupClientType(object):
     """
     A client type object for backups
     """
+
     def __init__(self, type, is_file_system, description):
         """
         Initialize an instance of :class:`DimensionDataBackupClientType`
@@ -1385,6 +1410,7 @@ class DimensionDataBackupStoragePolicy(object):
     """
     A representation of a storage policy
     """
+
     def __init__(self, name, retention_period, secondary_location):
         """
         Initialize an instance of :class:`DimensionDataBackupStoragePolicy`
@@ -1411,6 +1437,7 @@ class DimensionDataBackupSchedulePolicy(object):
     """
     A representation of a schedule policy
     """
+
     def __init__(self, name, description):
         """
         Initialize an instance of :class:`DimensionDataBackupSchedulePolicy`
@@ -1436,6 +1463,7 @@ class DimensionDataTag(object):
     a key and an option value.  Tags can be queried later to filter assets
     and also show up on usage report if so desired.
     """
+
     def __init__(self, asset_type, asset_id, asset_name,
                  datacenter, key, value):
         """
@@ -1478,6 +1506,7 @@ class DimensionDataTagKey(object):
     A representation of a Tag Key in Dimension Data
     A tag key is required to tag an asset
     """
+
     def __init__(self, id, name, description,
                  value_required, display_on_report):
         """
@@ -1560,6 +1589,7 @@ class DimensionDataIpAddress(object):
     """
     A representation of IP Address in Dimension Data
     """
+
     def __init__(self, begin, end=None, prefix_size=None):
         """
         Initialize an instance of :class:`DimensionDataIpAddress`

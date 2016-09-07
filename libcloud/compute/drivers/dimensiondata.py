@@ -1480,6 +1480,109 @@ class DimensionDataNodeDriver(NodeDriver):
         rule.id = rule_id
         return rule
 
+    def ex_edit_firewall_rule(self, rule, position, position_relative_to_rule=None):
+        """
+        Edit a firewall rule
+
+        :param rule: The rule in which to create
+        :type  rule: :class:`DimensionDataFirewallRule`
+
+        :param position: The position in which to create the rule
+                         There are two types of positions
+                         with position_relative_to_rule arg and without it
+                         With: 'BEFORE' or 'AFTER'
+                         Without: 'FIRST' or 'LAST'
+        :type  position: ``str``
+
+        :param position_relative_to_rule: The rule or rule name in
+                                          which to decide positioning by
+        :type  position_relative_to_rule:
+            :class:`DimensionDataFirewallRule` or ``str``
+
+        :rtype: ``bool``
+        """
+
+        positions_without_rule = ('FIRST', 'LAST')
+        positions_with_rule = ('BEFORE', 'AFTER')
+
+        edit_node = ET.Element('editFirewallRule', {'xmlns': TYPES_URN, 'id': rule.id})
+        ET.SubElement(edit_node, "action").text = rule.action
+        ET.SubElement(edit_node, "protocol").text = rule.protocol
+
+        # Setup source port rule
+        source = ET.SubElement(edit_node, "source")
+        if rule.source.address_list_id is not None:
+            source_ip = ET.SubElement(source, 'ipAddressListId')
+            source_ip.text = rule.source.address_list_id
+        else:
+            source_ip = ET.SubElement(source, 'ip')
+            if rule.source.any_ip:
+                source_ip.set('address', 'ANY')
+            else:
+                source_ip.set('address', rule.source.ip_address)
+                if rule.source.ip_prefix_size is not None:
+                    source_ip.set('prefixSize',
+                                  str(rule.source.ip_prefix_size))
+        if rule.source.port_list_id is not None:
+            source_port = ET.SubElement(source, 'portListId')
+            source_port.text = rule.source.port_list_id
+        else:
+            if rule.source.port_begin is not None:
+                source_port = ET.SubElement(source, 'port')
+                source_port.set('begin', rule.source.port_begin)
+            if rule.source.port_end is not None:
+                source_port.set('end', rule.source.port_end)
+        # Setup destination port rule
+        dest = ET.SubElement(edit_node, "destination")
+        if rule.destination.address_list_id is not None:
+            dest_ip = ET.SubElement(dest, 'ipAddressListId')
+            dest_ip.text = rule.destination.address_list_id
+        else:
+            dest_ip = ET.SubElement(dest, 'ip')
+            if rule.destination.any_ip:
+                dest_ip.set('address', 'ANY')
+            else:
+                dest_ip.set('address', rule.destination.ip_address)
+                if rule.destination.ip_prefix_size is not None:
+                    dest_ip.set('prefixSize', rule.destination.ip_prefix_size)
+        if rule.destination.port_list_id is not None:
+            dest_port = ET.SubElement(dest, 'portListId')
+            dest_port.text = rule.destination.port_list_id
+        else:
+            if rule.destination.port_begin is not None:
+                dest_port = ET.SubElement(dest, 'port')
+                dest_port.set('begin', rule.destination.port_begin)
+            if rule.destination.port_end is not None:
+                dest_port.set('end', rule.destination.port_end)
+        # Set up positioning of rule
+        ET.SubElement(edit_node, "enabled").text = str(rule.enabled).lower()
+        placement = ET.SubElement(edit_node, "placement")
+        if position_relative_to_rule is not None:
+            if position not in positions_with_rule:
+                raise ValueError("When position_relative_to_rule is specified"
+                                 " position must be %s"
+                                 % ', '.join(positions_with_rule))
+            if isinstance(position_relative_to_rule,
+                          DimensionDataFirewallRule):
+                rule_name = position_relative_to_rule.name
+            else:
+                rule_name = position_relative_to_rule
+            placement.set('relativeToRule', rule_name)
+        else:
+            if position not in positions_without_rule:
+                raise ValueError("When position_relative_to_rule is not"
+                                 " specified position must be %s"
+                                 % ', '.join(positions_without_rule))
+        placement.set('position', position)
+
+        response = self.connection.request_with_orgId_api_2(
+            'network/editFirewallRule',
+            method='POST',
+            data=ET.tostring(edit_node)).object
+
+        response_code = findtext(response, 'responseCode', TYPES_URN)
+        return response_code in ['IN_PROGRESS', 'OK']
+
     def ex_get_firewall_rule(self, network_domain, rule_id):
         locations = self.list_locations()
         rule = self.connection.request_with_orgId_api_2(
