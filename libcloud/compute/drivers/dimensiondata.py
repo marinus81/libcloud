@@ -308,6 +308,247 @@ class DimensionDataNodeDriver(NodeDriver):
 
         return node
 
+    def add_node(self, name, ex_description,
+                 image,
+                 auth,
+                 ex_network_domain,
+                 ex_is_started=True,
+                 ex_cpu_specification=None,
+                 ex_memory_gb=None,
+                 ex_primary_nic_private_ipv4=None,
+                 ex_primary_nic_vlan=None,
+                 ex_primary_nic_network_adapter=None,
+                 ex_additional_nics=None,
+                 ex_primary_dns=None,
+                 ex_secondary_dns=None,
+                 ex_ipv4_gateway=None,
+                 ex_disks=None,
+                 ex_microsoft_time_zone=None,
+                 ):
+        """
+        Create a new DimensionData node. For MCP2 only.
+
+        :keyword    name:   String with a name for this new node (required)
+        :type       name:   ``str``
+
+        :keyword    image:  OS Image to boot on node. (required)
+        :type       image:  :class:`NodeImage` or ``str``
+
+        :keyword    auth:   Initial authentication information for the
+                            node. (If this is a customer LINUX
+                            image auth will be ignored)
+        :type       auth:   :class:`NodeAuthPassword` or ``str`` or ``None``
+
+        :keyword    ex_description:  description for this node (required)
+        :type       ex_description:  ``str``
+
+
+        :keyword    ex_network_domain:  Network Domain to create the node
+                                        (required)
+        :type       ex_network_domain: :class:`DimensionDataNetworkDomain`
+                                        or ``str``
+
+        :keyword    ex_primary_nic_private_ipv4:  x_primary_nic_vlan:  Provide either a
+                    VLAN on the same Network Domain as networkDomain
+                    OR privateIpv4 (required)
+
+        :type       ex_primary_nic_private_ipv4: :``str``
+
+        :keyword    ex_primary_nic_vlan:  Provide either a
+                    VLAN on the same Network Domain as networkDomain
+                    OR privateIpv4 (required)
+
+        :type       ex_primary_nic_vlan: :class: DimensionDataVlan or ``str``
+
+        :keyword    ex_primary_nic_network_adapter:  if not supplied the default value
+                    for the Operating System will be used, for example "E1000".(Optional)
+
+        :type       ex_primary_nic_network_adapter: :``str``
+
+        :keyword    ex_additional_nics: List of additional nic: :class:'DimensionDataNic' (optional)
+
+        :type       ex_additional_nics: List of :class:'DimensionDataNic' or``str``
+
+
+        :keyword    ex_additional_nics: List of additional nic: :class:'DimensionDataNic' (optional)
+
+        :type       ex_additional_nics: List of :class:'DimensionDataNic' or``str``
+
+        :keyword    ex_memory_gb:  The amount of memory in GB for the server
+        :type       ex_memory_gb: ``int``
+
+        :keyword    ex_cpu_specification: The spec of CPU to deploy (optional)
+        :type       ex_cpu_specification:
+            :class:`DimensionDataServerCpuSpecification`
+
+        :keyword    ex_is_started:  Start server after creation? default
+                                   true (required)
+        :type       ex_is_started:  ``bool``
+
+        :keyword    ex_primary_dns: The node's primary DNS
+
+        :type       ex_primary_dns: ``str``
+
+        :keyword    ex_secondary_dns: The node's secondary DNS
+
+        :type       ex_secondary_dns: ``str``
+
+        :keyword    ex_ipv4_gateway: Optional IPv4 address in dot-decimal notation, which will
+            be used as the Primary NIC gateway instead of the default gateway assigned by the system.
+            If ipv4Gateway is provided it does not have to be on the VLAN of the Primary NIC but MUST
+            be reachable or the Guest OS will not be configured correctly.
+
+        :type       ex_ipv4_gateway: ``str``
+
+        :keyword    ex_disks: Dimensiondata disks. Optional disk elements can be used to define the disk speed
+            that each disk on the Server – inherited from the source Server Image -
+            will be deployed to. It is not necessary to include a disk element for every disk;
+            only those that you wish to set a disk speed value for.
+            Note that scsiId 7 cannot be used.
+            Up to 13 disks can be present in addition to the required OS disk on SCSI ID 0.
+
+        :type       ex_disks: List or tuple of :class:'DimensionDataServerDisk`
+
+        :keyword    [Optional] ex_microsoft_time_zone: String. For use with Microsoft Windows source Server Images (imageId)
+                    only. For the exact value to use please refer to the table of time zone indexes in the following
+                    Microsoft Technet documentation. If none is supplied, the default time zone for the data
+                    center’s geographic region will be used.
+
+        :type       ex_microsoft_time_zone: :class:'DimensionDataServerDisk` or `str``
+
+
+        :return: The newly created :class:`Node`.
+        :rtype: :class:`Node`
+        """
+        password = None
+        image_needs_auth = self._image_needs_auth(image)
+        if image_needs_auth:
+            if isinstance(auth, basestring):
+                auth_obj = NodeAuthPassword(password=auth)
+                password = auth
+            else:
+                auth_obj = self._get_and_check_auth(auth)
+                password = auth_obj.password
+
+        if ex_network_domain is None:
+            raise ValueError("ex_network_domain must be specified")
+
+        server_elm = ET.Element('deployServer', {'xmlns': TYPES_URN})
+        ET.SubElement(server_elm, "name").text = name
+        ET.SubElement(server_elm, "description").text = ex_description
+        image_id = self._image_to_image_id(image)
+        ET.SubElement(server_elm, "imageId").text = image_id
+        ET.SubElement(server_elm, "start").text = str(ex_is_started).lower()
+        if password is not None:
+            ET.SubElement(server_elm, "administratorPassword").text = password
+
+        if ex_cpu_specification is not None:
+            cpu = ET.SubElement(server_elm, "cpu")
+            cpu.set('speed', ex_cpu_specification.performance)
+            cpu.set('count', str(ex_cpu_specification.cpu_count))
+            cpu.set('coresPerSocket',
+                    str(ex_cpu_specification.cores_per_socket))
+
+        if ex_memory_gb is not None:
+            ET.SubElement(server_elm, "memoryGb").text = str(ex_memory_gb)
+
+        if (ex_primary_nic_private_ipv4 is None and
+                ex_primary_nic_vlan is None):
+            raise ValueError("Either ex_vlan or ex_primary_ipv4 "
+                             "must be specified. Not Both")
+
+        if (ex_primary_nic_private_ipv4 is not None and
+                ex_primary_nic_vlan is not None):
+            raise ValueError("Either ex_vlan or ex_primary_ipv4 "
+                             "must be specified. Not both.")
+
+        network_elm = ET.SubElement(server_elm, "networkInfo")
+        if ex_network_domain is None:
+            raise TypeError("ex_network_domain is required")
+
+        net_domain_id = self._network_domain_to_network_domain_id(
+            ex_network_domain)
+
+        network_elm.set('networkDomainId', net_domain_id)
+
+        pri_nic = ET.SubElement(network_elm, 'primaryNic')
+
+        if ex_primary_nic_private_ipv4 is not None:
+            ET.SubElement(pri_nic, 'privateIpv4').text = ex_primary_nic_private_ipv4
+
+        if ex_primary_nic_vlan is not None:
+            vlan_id = self._vlan_to_vlan_id(ex_primary_nic_vlan)
+            ET.SubElement(pri_nic, 'vlanId').text = vlan_id
+
+        if ex_primary_nic_network_adapter is not None:
+            ET.SubElement(pri_nic, "networkAdapter").text = ex_primary_nic_network_adapter
+
+        if isinstance(ex_additional_nics, (list, tuple)):
+            for nic in ex_additional_nics:
+                additional_nic = ET.SubElement(network_elm, 'additionalNic')
+
+                if (nic.private_ip_v4 is None and
+                            nic.network_adapter_name is None):
+                    raise ValueError("Either ex_vlan or ex_primary_ipv4 "
+                                     "must be specified. Not both")
+
+                if (nic.private_ip_v4 is not None and
+                            nic.network_adapter_name is not None):
+                    raise ValueError("Either ex_vlan or ex_primary_ipv4 "
+                                     "must be specified. Not both")
+
+                if nic.private_ip_v4 is not None:
+                    ET.SubElement(additional_nic, 'privateIpv4').text = nic.private_ip_v4
+
+                if nic.vlan is not None:
+                    vlan_id = self._vlan_to_vlan_id(nic.vlan)
+                    ET.SubElement(additional_nic, 'vlanId').text = vlan_id
+
+                if nic.network_adapter_name is not None:
+                    ET.SubElement(additional_nic, "networkAdapter").text = nic.network_adapter_name
+        elif ex_additional_nics is not None:
+            raise TypeError("ex_additional_NICs must be None or tuple/list")
+
+        if ex_primary_dns:
+            dns_elm = ET.SubElement(server_elm, "primaryDns")
+            dns_elm.text = ex_primary_dns
+
+        if ex_secondary_dns:
+            dns_elm = ET.SubElement(server_elm, "secondaryDns")
+            dns_elm.text = ex_secondary_dns
+
+        if ex_ipv4_gateway:
+            ET.SubElement(server_elm, "ipv4Gateway").text = ex_ipv4_gateway
+
+        if isinstance(ex_disks, (list, tuple)):
+            for disk in ex_disks:
+                disk_elm = ET.SubElement(server_elm, 'disk')
+                disk_elm.set('scsiId', disk.scsi_id)
+                disk_elm.set('speed', disk.speed)
+        elif ex_disks is not None:
+            raise TypeError("ex_disks must be None or tuple/list")
+
+        if ex_microsoft_time_zone:
+            ET.SubElement(server_elm, "microsoftTimeZone").text = ex_microsoft_time_zone
+
+        response = self.connection.request_with_orgId_api_2(
+            'server/deployServer',
+            method='POST',
+            data=ET.tostring(server_elm)).object
+
+        node_id = None
+        for info in findall(response, 'info', TYPES_URN):
+            if info.get('name') == 'serverId':
+                node_id = info.get('value')
+
+        node = self.ex_get_node_by_id(node_id)
+
+        if image_needs_auth:
+            if getattr(auth_obj, "generated", False):
+                node.extra['password'] = auth_obj.password
+
+        return node
+
     def destroy_node(self, node):
         """
         Deletes a node, node must be stopped before deletion
@@ -406,7 +647,8 @@ class DimensionDataNodeDriver(NodeDriver):
             image=ex_image, deployed=ex_deployed,
             started=ex_started, state=ex_state,
             network=ex_network,
-            network_domain=ex_network_domain):
+            network_domain=ex_network_domain
+        ):
             node_list.extend(nodes)
 
         return node_list
@@ -2791,7 +3033,7 @@ class DimensionDataNodeDriver(NodeDriver):
         return response_code in ['IN_PROGRESS', 'OK']
 
     def ex_edit_port_list(self, ex_port_list_id, description,
-                                port_collection, child_port_list_id=None):
+                          port_collection, child_port_list_id=None):
         """
         Edit Port List.
 
@@ -2865,7 +3107,7 @@ class DimensionDataNodeDriver(NodeDriver):
         """
 
         delete_port_list = ET.Element('deletePortList',
-                                            {'xmlns': TYPES_URN, 'id': ex_port_list_id})
+                                      {'xmlns': TYPES_URN, 'id': ex_port_list_id})
 
         response = self.connection.request_with_orgId_api_2(
             'network/deletePortList',

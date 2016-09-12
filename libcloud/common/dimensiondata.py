@@ -1674,3 +1674,31 @@ class DimensionDataPort(object):
     def __repr__(self):
         return ('<DimensionDataPort: begin=%s, end=%s>'
                 % (self.begin, self.end))
+
+
+class DimensionDataNic(object):
+    """
+    A representation of Network Adapter in Dimension Data
+    """
+
+    def __init__(self, private_ip_v4=None, vlan=None, network_adapter=None):
+        """
+        Initialize an instance of :class:`DimensionDataNic`
+
+        :param private_ip_v4: IPv4
+        :type  private_ip_v4: ``str``
+
+        :param vlan: Network VLAN
+        :type  vlan: class: DimensionDataVlan or ``str``
+
+        :param network_adapter: Network Adapter Name
+        :type  network_adapter: ``str``
+        """
+        self.private_ip_v4 = private_ip_v4
+        self.vlan = vlan
+        self.network_adapter_name = network_adapter
+
+    def __repr__(self):
+        return ('<DimensionDataNic: private_ip_v4=%s, vlan=%s,'
+                'network_adapter=%s>'
+                % (self.private_ip_v4, self.vlan, self.network_adapter))
