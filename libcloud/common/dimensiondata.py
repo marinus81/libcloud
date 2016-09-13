@@ -486,12 +486,12 @@ class DimensionDataConnection(ConnectionUserAndKey):
         paged_resp = paged_resp or {}
 
         while int(paged_resp.get('pageCount')) >= \
-            int(paged_resp.get('pageSize')):
-            params['pageNumber'] = int(paged_resp.get('pageNumber')) + 1
-            paged_resp = self.request_with_orgId_api_2(action, params,
-                                                       data, headers,
-                                                       method).object
-            yield paged_resp
+                int(paged_resp.get('pageSize')):
+                params['pageNumber'] = int(paged_resp.get('pageNumber')) + 1
+                paged_resp = self.request_with_orgId_api_2(action, params,
+                                                           data, headers,
+                                                           method).object
+        yield paged_resp
 
     def get_resource_path_api_1(self):
         """
@@ -840,7 +840,8 @@ class DimensionDataFirewallAddress(object):
 
     def __repr__(self):
         return (
-            '<DimensionDataFirewallAddress: any_ip=%s, ip_address=%s, ip_prefix_size=%s, port_begin=%s, port_end=%s, '
+            '<DimensionDataFirewallAddress: any_ip=%s, ip_address=%s, '
+            'ip_prefix_size=%s, port_begin=%s, port_end=%s, '
             'address_list_id=%s, port_list_id=%s>'
             % (self.any_ip, self.ip_address, self.ip_prefix_size,
                self.port_begin, self.port_end, self.address_list_id,
@@ -962,7 +963,8 @@ class DimensionDataVlan(object):
 
     def __repr__(self):
         return (('<DimensionDataVlan: id=%s, name=%s, '
-                 'description=%s, location=%s, status=%s, gateway_addressing=%s>')
+                 'description=%s, location=%s, status=%s, '
+                 'gateway_addressing=%s>')
                 % (self.id, self.name, self.description,
                    self.location, self.status, self.gateway_addressing))
 
@@ -1544,7 +1546,8 @@ class DimensionDataIpAddressList(object):
     DimensionData IP Address list
     """
 
-    def __init__(self, id, name, description, ip_version, ip_address_collection,
+    def __init__(self, id, name, description, ip_version,
+                 ip_address_collection,
                  state, create_time):
         """"
         Initialize an instance of :class:`DimensionDataIpAddressList`
@@ -1580,7 +1583,8 @@ class DimensionDataIpAddressList(object):
 
     def __repr__(self):
         return ('<DimensionDataIpAddressList: id=%s, name=%s, description=%s, '
-                'ip_version=%s, ip_address_collection=%s, state=%s, create_time=%s>'
+                'ip_version=%s, ip_address_collection=%s, state=%s, '
+                'create_time=%s>'
                 % (self.id, self.name, self.description, self.ip_version,
                    self.ip_address_collection, self.state, self.create_time))
 
@@ -1648,9 +1652,11 @@ class DimensionDataPortList(object):
         self.create_time = create_time
 
     def __repr__(self):
-        return ('<DimensionDataPortList: id=%s, name=%s, description=%s, port_collection=%s, state=%s, create_time=%s>'
-                % (self.id, self.name, self.description,
-                   self.port_collection, self.state, self.create_time))
+        return (
+            "<DimensionDataPortList: id=%s, name=%s, description=%s, "
+            "port_collection=%s, state=%s, create_time=%s>"
+            % (self.id, self.name, self.description,
+               self.port_collection, self.state, self.create_time))
 
 
 class DimensionDataPort(object):

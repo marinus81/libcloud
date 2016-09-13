@@ -215,9 +215,8 @@ class DimensionDataNodeDriver(NodeDriver):
                 auth_obj = self._get_and_check_auth(auth)
                 password = auth_obj.password
 
-        if (ex_network_domain is None and
-                    ex_network is None and
-                    ex_primary_ipv4 is None):
+        if (ex_network_domain is None and ex_network is None and
+                ex_primary_ipv4 is None):
             raise ValueError("One of ex_network_domain, ex_network, "
                              "or ex_ipv6_primary must be specified")
 
@@ -348,7 +347,8 @@ class DimensionDataNodeDriver(NodeDriver):
         :type       ex_network_domain: :class:`DimensionDataNetworkDomain`
                                         or ``str``
 
-        :keyword    ex_primary_nic_private_ipv4:  x_primary_nic_vlan:  Provide either a
+        :keyword    ex_primary_nic_private_ipv4:  x_primary_nic_vlan:
+        Provide either a
                     VLAN on the same Network Domain as networkDomain
                     OR privateIpv4 (required)
 
@@ -360,19 +360,25 @@ class DimensionDataNodeDriver(NodeDriver):
 
         :type       ex_primary_nic_vlan: :class: DimensionDataVlan or ``str``
 
-        :keyword    ex_primary_nic_network_adapter:  if not supplied the default value
-                    for the Operating System will be used, for example "E1000".(Optional)
+        :keyword    ex_primary_nic_network_adapter:  if not supplied the
+        default value
+                    for the Operating System will be used, for example
+                    "E1000".(Optional)
 
         :type       ex_primary_nic_network_adapter: :``str``
 
-        :keyword    ex_additional_nics: List of additional nic: :class:'DimensionDataNic' (optional)
+        :keyword    ex_additional_nics: List of additional nic:
+        :class:'DimensionDataNic' (optional)
 
-        :type       ex_additional_nics: List of :class:'DimensionDataNic' or``str``
+        :type       ex_additional_nics: List of :class:'DimensionDataNic'
+        or``str``
 
 
-        :keyword    ex_additional_nics: List of additional nic: :class:'DimensionDataNic' (optional)
+        :keyword    ex_additional_nics: List of additional nic:
+        :class:'DimensionDataNic' (optional)
 
-        :type       ex_additional_nics: List of :class:'DimensionDataNic' or``str``
+        :type       ex_additional_nics: List of :class:'DimensionDataNic'
+        or``str``
 
         :keyword    ex_memory_gb:  The amount of memory in GB for the server
         :type       ex_memory_gb: ``int``
@@ -393,28 +399,39 @@ class DimensionDataNodeDriver(NodeDriver):
 
         :type       ex_secondary_dns: ``str``
 
-        :keyword    ex_ipv4_gateway: Optional IPv4 address in dot-decimal notation, which will
-            be used as the Primary NIC gateway instead of the default gateway assigned by the system.
-            If ipv4Gateway is provided it does not have to be on the VLAN of the Primary NIC but MUST
+        :keyword    ex_ipv4_gateway: Optional IPv4 address in dot-decimal
+        notation, which will
+            be used as the Primary NIC gateway instead of the default
+            gateway assigned by the system.
+            If ipv4Gateway is provided it does not have to be on the VLAN of
+            the Primary NIC but MUST
             be reachable or the Guest OS will not be configured correctly.
 
         :type       ex_ipv4_gateway: ``str``
 
-        :keyword    ex_disks: Dimensiondata disks. Optional disk elements can be used to define the disk speed
-            that each disk on the Server – inherited from the source Server Image -
-            will be deployed to. It is not necessary to include a disk element for every disk;
+        :keyword    ex_disks: Dimensiondata disks. Optional disk elements
+        can be used to define the disk speed
+            that each disk on the Server – inherited from the source Server
+            Image -
+            will be deployed to. It is not necessary to include a disk
+            element for every disk;
             only those that you wish to set a disk speed value for.
             Note that scsiId 7 cannot be used.
-            Up to 13 disks can be present in addition to the required OS disk on SCSI ID 0.
+            Up to 13 disks can be present in addition to the required OS
+            disk on SCSI ID 0.
 
         :type       ex_disks: List or tuple of :class:'DimensionDataServerDisk`
 
-        :keyword    [Optional] ex_microsoft_time_zone: String. For use with Microsoft Windows source Server Images (imageId)
-                    only. For the exact value to use please refer to the table of time zone indexes in the following
-                    Microsoft Technet documentation. If none is supplied, the default time zone for the data
+        :keyword    [Optional] ex_microsoft_time_zone: String. For use with
+        Microsoft Windows source Server Images (imageId)
+                    only. For the exact value to use please refer to the
+                    table of time zone indexes in the following
+                    Microsoft Technet documentation. If none is supplied,
+                    the default time zone for the data
                     center’s geographic region will be used.
 
-        :type       ex_microsoft_time_zone: :class:'DimensionDataServerDisk` or `str``
+        :type       ex_microsoft_time_zone: :class:'DimensionDataServerDisk`
+        or `str``
 
 
         :return: The newly created :class:`Node`.
@@ -474,38 +491,44 @@ class DimensionDataNodeDriver(NodeDriver):
         pri_nic = ET.SubElement(network_elm, 'primaryNic')
 
         if ex_primary_nic_private_ipv4 is not None:
-            ET.SubElement(pri_nic, 'privateIpv4').text = ex_primary_nic_private_ipv4
+            ET.SubElement(pri_nic,
+                          'privateIpv4').text = ex_primary_nic_private_ipv4
 
         if ex_primary_nic_vlan is not None:
             vlan_id = self._vlan_to_vlan_id(ex_primary_nic_vlan)
             ET.SubElement(pri_nic, 'vlanId').text = vlan_id
 
         if ex_primary_nic_network_adapter is not None:
-            ET.SubElement(pri_nic, "networkAdapter").text = ex_primary_nic_network_adapter
+            ET.SubElement(pri_nic,
+                          "networkAdapter").text = \
+                ex_primary_nic_network_adapter
 
         if isinstance(ex_additional_nics, (list, tuple)):
             for nic in ex_additional_nics:
                 additional_nic = ET.SubElement(network_elm, 'additionalNic')
 
                 if (nic.private_ip_v4 is None and
-                            nic.network_adapter_name is None):
+                        nic.network_adapter_name is None):
                     raise ValueError("Either ex_vlan or ex_primary_ipv4 "
                                      "must be specified. Not both")
 
                 if (nic.private_ip_v4 is not None and
-                            nic.network_adapter_name is not None):
+                        nic.network_adapter_name is not None):
                     raise ValueError("Either ex_vlan or ex_primary_ipv4 "
                                      "must be specified. Not both")
 
                 if nic.private_ip_v4 is not None:
-                    ET.SubElement(additional_nic, 'privateIpv4').text = nic.private_ip_v4
+                    ET.SubElement(additional_nic,
+                                  'privateIpv4').text = nic.private_ip_v4
 
                 if nic.vlan is not None:
                     vlan_id = self._vlan_to_vlan_id(nic.vlan)
                     ET.SubElement(additional_nic, 'vlanId').text = vlan_id
 
                 if nic.network_adapter_name is not None:
-                    ET.SubElement(additional_nic, "networkAdapter").text = nic.network_adapter_name
+                    ET.SubElement(additional_nic,
+                                  "networkAdapter").text = \
+                        nic.network_adapter_name
         elif ex_additional_nics is not None:
             raise TypeError("ex_additional_NICs must be None or tuple/list")
 
@@ -529,7 +552,8 @@ class DimensionDataNodeDriver(NodeDriver):
             raise TypeError("ex_disks must be None or tuple/list")
 
         if ex_microsoft_time_zone:
-            ET.SubElement(server_elm, "microsoftTimeZone").text = ex_microsoft_time_zone
+            ET.SubElement(server_elm,
+                          "microsoftTimeZone").text = ex_microsoft_time_zone
 
         response = self.connection.request_with_orgId_api_2(
             'server/deployServer',
@@ -675,8 +699,7 @@ class DimensionDataNodeDriver(NodeDriver):
         return self._to_images(
             self.connection.request_with_orgId_api_2(
                 'image/osImage',
-                params=params)
-                .object)
+                params=params).object)
 
     def list_sizes(self, location=None):
         """
@@ -714,9 +737,9 @@ class DimensionDataNodeDriver(NodeDriver):
         return self._to_locations(
             self.connection
                 .request_with_orgId_api_2(
-                'infrastructure/datacenter',
-                params=params
-            ).object
+                    'infrastructure/datacenter',
+                    params=params
+                ).object
         )
 
     def list_networks(self, location=None):
@@ -1722,7 +1745,8 @@ class DimensionDataNodeDriver(NodeDriver):
         rule.id = rule_id
         return rule
 
-    def ex_edit_firewall_rule(self, rule, position, position_relative_to_rule=None):
+    def ex_edit_firewall_rule(self, rule, position,
+                              position_relative_to_rule=None):
         """
         Edit a firewall rule
 
@@ -1747,7 +1771,8 @@ class DimensionDataNodeDriver(NodeDriver):
         positions_without_rule = ('FIRST', 'LAST')
         positions_with_rule = ('BEFORE', 'AFTER')
 
-        edit_node = ET.Element('editFirewallRule', {'xmlns': TYPES_URN, 'id': rule.id})
+        edit_node = ET.Element('editFirewallRule',
+                               {'xmlns': TYPES_URN, 'id': rule.id})
         ET.SubElement(edit_node, "action").text = rule.action
         ET.SubElement(edit_node, "protocol").text = rule.protocol
 
@@ -2293,8 +2318,7 @@ class DimensionDataNodeDriver(NodeDriver):
         return self._to_images(
             self.connection.request_with_orgId_api_2(
                 'image/customerImage',
-                params=params)
-                .object, 'customerImage')
+                params=params).object, 'customerImage')
 
     def ex_get_base_image_by_id(self, id):
         """
@@ -2739,7 +2763,8 @@ class DimensionDataNodeDriver(NodeDriver):
         List IP Address List by network domain ID specified
 
 
-        keyword    ex_network_domain_id:  Network Domain ID to get ip address list
+        keyword    ex_network_domain_id:  Network Domain ID to get ip
+        address list
                                         (required)
         :type      ex_network_domain_id: :``str``
 
@@ -2751,11 +2776,13 @@ class DimensionDataNodeDriver(NodeDriver):
             'network/ipAddressList', params=params).object
         return self._to_ip_address_lists(response)
 
-    def ex_get_ip_address_list(self, ex_network_domain_id, ex_ip_address_list_name):
+    def ex_get_ip_address_list(self, ex_network_domain_id,
+                               ex_ip_address_list_name):
         """
         Get IP Address List by name in network domain specified
 
-        keyword    ex_network_domain_id:  Network Domain ID to create IP Address List
+        keyword    ex_network_domain_id:  Network Domain ID to create IP
+        Address List
                                         (required)
         :type      ex_network_domain_id: :``str``
 
@@ -2768,14 +2795,18 @@ class DimensionDataNodeDriver(NodeDriver):
         """
 
         ip_address_lists = self.ex_list_ip_address_list(ex_network_domain_id)
-        return list(filter(lambda x: x.name == ex_ip_address_list_name, ip_address_lists))
+        return list(filter(lambda x: x.name == ex_ip_address_list_name,
+                           ip_address_lists))
 
-    def ex_create_ip_address_list(self, ex_network_domain_id, name, description,
-                                  ip_version, ip_address_collection, child_ip_address_list_id=None):
+    def ex_create_ip_address_list(self, ex_network_domain_id, name,
+                                  description,
+                                  ip_version, ip_address_collection,
+                                  child_ip_address_list_id=None):
         """
         Create IP Address List. IP Address list.
 
-        keyword    ex_network_domain_id:  Network Domain ID to create IP Address List in
+        keyword    ex_network_domain_id:  Network Domain ID to create IP
+        Address List in
                                         (required)
         :type      ex_network_domain_id: :``str``
 
@@ -2791,13 +2822,15 @@ class DimensionDataNodeDriver(NodeDriver):
         keyword    ip_address_collection:  List of IP Address
         :type      ip_address_collection: :``str``
 
-        keyword    child_ip_address_list_id:  Child IP Address List to be included in this IP Address List
+        keyword    child_ip_address_list_id:  Child IP Address List to be
+        included in this IP Address List
         :type      child_ip_address_list_id: :``str``
 
         :return: a list of DimensionDataIpAddressList objects
         :rtype: ``list`` of :class:`DimensionDataIpAddressList`
         """
-        create_ip_address_list = ET.Element('createIpAddressList', {'xmlns': TYPES_URN})
+        create_ip_address_list = ET.Element('createIpAddressList',
+                                            {'xmlns': TYPES_URN})
         ET.SubElement(
             create_ip_address_list,
             'networkDomainId'
@@ -2846,12 +2879,13 @@ class DimensionDataNodeDriver(NodeDriver):
         return response_code in ['IN_PROGRESS', 'OK']
 
     def ex_edit_ip_address_list(self, ex_ip_address_list_id, description,
-                                ip_address_collection, child_ip_address_list_id=None):
+                                ip_address_collection,
+                                child_ip_address_list_id=None):
         """
         Edit IP Address List. IP Address list.
 
-        keyword    ex_ip_address_list_id:  ID of the IP Address List to be edited
-                                        (required)
+        keyword    ex_ip_address_list_id:  ID of the IP Address List to be
+                                     edited (required)
         :type      ex_ip_address_list_id: :``str``
 
         keyword    description:  IP Address List Description
@@ -2860,16 +2894,19 @@ class DimensionDataNodeDriver(NodeDriver):
         keyword    ip_address_collection:  List of IP Address
         :type      ip_address_collection: :``str``
 
-        keyword    child_ip_address_list_id:  Child IP Address List to be included in this IP Address List
+        keyword    child_ip_address_list_id:  Child IP Address List to be
+                    included in this IP Address List
         :type      child_ip_address_list_id: :``str``
 
         :return: a list of DimensionDataIpAddressList objects
         :rtype: ``list`` of :class:`DimensionDataIpAddressList`
         """
-        edit_ip_address_list = ET.Element('editIpAddressList', {'xmlns': TYPES_URN,
-                                                                "id": ex_ip_address_list_id,
-                                                                'xmlns:xsi': "http://www.w3.org/2001/XMLSchema-instance"
-                                                                })
+        edit_ip_address_list = ET.Element(
+            'editIpAddressList',
+            {'xmlns': TYPES_URN,
+             "id": ex_ip_address_list_id,
+             'xmlns:xsi': "http://www.w3.org/2001/XMLSchema-instance"
+             })
 
         ET.SubElement(
             edit_ip_address_list,
@@ -2921,7 +2958,8 @@ class DimensionDataNodeDriver(NodeDriver):
         """
 
         delete_ip_address_list = ET.Element('deleteIpAddressList',
-                                            {'xmlns': TYPES_URN, 'id': ex_ip_address_list_id})
+                                            {'xmlns': TYPES_URN,
+                                             'id': ex_ip_address_list_id})
 
         response = self.connection.request_with_orgId_api_2(
             'network/deleteIpAddressList',
@@ -2986,7 +3024,8 @@ class DimensionDataNodeDriver(NodeDriver):
         keyword    port_collection:  List of Port Address
         :type      port_collection: :``str``
 
-        keyword    child_port_list_id:  Child Port List to be included in this Port List
+        keyword    child_port_list_id:  Child Port List to be included in
+        this Port List
         :type      child_port_list_id: :``str``
 
         :return: a list of DimensionDataPortList objects
@@ -3047,18 +3086,21 @@ class DimensionDataNodeDriver(NodeDriver):
         keyword    port_collection:  List of Port Address
         :type      port_collection: :``str``
 
-        keyword    child_port_list_id:  Child Port List to be included in this IP Address List
+        keyword    child_port_list_id:  Child Port List to be included in
+        this IP Address List
         :type      child_port_list_id: :``str``
 
         :return: a list of DimensionDataIpAddressList objects
         :rtype: ``list`` of :class:`DimensionDataIpAddressList`
         """
 
-        existing_port_address_list = ET.Element('editPortList',
-                                                {"id": ex_port_list_id,
-                                                 'xmlns': TYPES_URN,
-                                                 'xmlns:xsi': "http://www.w3.org/2001/XMLSchema-instance"
-                                                 })
+        existing_port_address_list = ET.Element(
+            'editPortList',
+            {
+                "id": ex_port_list_id,
+                'xmlns': TYPES_URN,
+                'xmlns:xsi': "http://www.w3.org/2001/XMLSchema-instance"
+            })
 
         ET.SubElement(
             existing_port_address_list,
@@ -3107,7 +3149,8 @@ class DimensionDataNodeDriver(NodeDriver):
         """
 
         delete_port_list = ET.Element('deletePortList',
-                                      {'xmlns': TYPES_URN, 'id': ex_port_list_id})
+                                      {'xmlns': TYPES_URN,
+                                       'id': ex_port_list_id})
 
         response = self.connection.request_with_orgId_api_2(
             'network/deletePortList',
@@ -3419,7 +3462,8 @@ class DimensionDataNodeDriver(NodeDriver):
                 TYPES_URN),
             location=location,
             status=findtext(element, 'state', TYPES_URN),
-            gateway_addressing=findtext(element, 'gatewayAddressing', TYPES_URN))
+            gateway_addressing=findtext(element, 'gatewayAddressing',
+                                        TYPES_URN))
 
     def _to_locations(self, object):
         locations = []
@@ -3482,8 +3526,9 @@ class DimensionDataNodeDriver(NodeDriver):
             'sourceImageId': findtext(element, 'sourceImageId', TYPES_URN),
             'networkId': findtext(element, 'networkId', TYPES_URN),
             'networkDomainId':
-                element.find(fixxpath('networkInfo', TYPES_URN))
-                    .get('networkDomainId')
+                element
+                .find(fixxpath('networkInfo', TYPES_URN))
+                .get('networkDomainId')
                 if has_network_info else None,
             'datacenterId': element.get('datacenterId'),
             'deployedTime': findtext(element, 'createTime', TYPES_URN),
