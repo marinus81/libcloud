@@ -410,25 +410,22 @@ class DimensionDataNodeDriver(NodeDriver):
         :type       ex_ipv4_gateway: ``str``
 
         :keyword    ex_disks: Dimensiondata disks. Optional disk elements
-        can be used to define the disk speed
-            that each disk on the Server – inherited from the source Server
-            Image -
-            will be deployed to. It is not necessary to include a disk
-            element for every disk;
-            only those that you wish to set a disk speed value for.
-            Note that scsiId 7 cannot be used.
-            Up to 13 disks can be present in addition to the required OS
-            disk on SCSI ID 0.
+        can be used to define the disk speed that each disk on the Server;
+        inherited from the source Server Image will be deployed to. It is
+        not necessary to include a diskelement for every disk; only those
+        that you wish to set a disk speed value for. Note that scsiId 7
+        cannot be used.Up to 13 disks can be present in addition to the
+        required OS disk on SCSI ID 0.
 
         :type       ex_disks: List or tuple of :class:'DimensionDataServerDisk`
 
         :keyword    [Optional] ex_microsoft_time_zone: String. For use with
         Microsoft Windows source Server Images (imageId)
-                    only. For the exact value to use please refer to the
-                    table of time zone indexes in the following
-                    Microsoft Technet documentation. If none is supplied,
-                    the default time zone for the data
-                    center’s geographic region will be used.
+        only. For the exact value to use please refer to the
+        table of time zone indexes in the following
+        Microsoft Technet documentation. If none is supplied,
+        the default time zone for the data center geographic region will
+        be used.
 
         :type       ex_microsoft_time_zone: :class:'DimensionDataServerDisk`
         or `str``

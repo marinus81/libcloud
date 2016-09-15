@@ -412,12 +412,12 @@ class DimensionDataTests(unittest.TestCase, TestCaseMixin):
         self.assertEqual(node.extra['status'].action, 'DEPLOY_SERVER')
 
     def test_create_node_bad_additional_nics_ipv4(self):
-        rootPw = NodeAuthPassword('pass123')
+        root_pw = NodeAuthPassword('pass123')
         image = self.driver.list_images()[0]
         with self.assertRaises(TypeError):
             self.driver.create_node(name='test2',
                                     image=image,
-                                    auth=rootPw,
+                                    auth=root_pw,
                                     ex_description='test2 node',
                                     ex_network_domain='fake_network_domain',
                                     ex_vlan='fake_vlan',
@@ -991,7 +991,8 @@ class DimensionDataTests(unittest.TestCase, TestCaseMixin):
     def test_ex_list_anti_affinity_rules_ALLFILTERS(self):
         net_domain = self.driver.ex_list_network_domains()[0]
         DimensionDataMockHttp.type = 'ALLFILTERS'
-        rules = self.driver.ex_list_anti_affinity_rules(network_domain=net_domain, filter_id='FAKE_ID', filter_state='FAKE_STATE')
+        rules = self.driver.ex_list_anti_affinity_rules(
+            network_domain=net_domain, filter_id='FAKE_ID', filter_state='FAKE_STATE')
         self.assertTrue(isinstance(rules, list))
         self.assertEqual(len(rules), 2)
         self.assertTrue(isinstance(rules[0].id, str))
