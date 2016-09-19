@@ -667,9 +667,9 @@ class DimensionDataNetworkDomain(object):
 
     def __repr__(self):
         return (('<DimensionDataNetworkDomain: id=%s, name=%s, '
-                 'description=%s, location=%s, status=%s>')
+                 'description=%s, location=%s, status=%s>, plan=%s>')
                 % (self.id, self.name, self.description, self.location,
-                   self.status))
+                   self.status, self.plan))
 
 
 class DimensionDataPublicIpBlock(object):
@@ -1548,7 +1548,7 @@ class DimensionDataIpAddressList(object):
 
     def __init__(self, id, name, description, ip_version,
                  ip_address_collection,
-                 state, create_time):
+                 state, create_time, child_ip_address_lists=None):
         """"
         Initialize an instance of :class:`DimensionDataIpAddressList`
 
@@ -1572,6 +1572,10 @@ class DimensionDataIpAddressList(object):
 
         :param create_time: IP Address List created time
         :type  create_time: ``date time``
+
+        :param child_ip_address_lists: List of IP address list to be included
+        :type  child_ip_address_lists: List
+        of :class:'DimensionDataIpAddressList'
         """
         self.id = id
         self.name = name
@@ -1580,13 +1584,39 @@ class DimensionDataIpAddressList(object):
         self.ip_address_collection = ip_address_collection
         self.state = state
         self.create_time = create_time
+        self.child_ip_address_lists = child_ip_address_lists
 
     def __repr__(self):
         return ('<DimensionDataIpAddressList: id=%s, name=%s, description=%s, '
                 'ip_version=%s, ip_address_collection=%s, state=%s, '
-                'create_time=%s>'
+                'create_time=%s, child_ip_address_lists=%s>'
                 % (self.id, self.name, self.description, self.ip_version,
-                   self.ip_address_collection, self.state, self.create_time))
+                   self.ip_address_collection, self.state, self.create_time,
+                   self.child_ip_address_lists))
+
+
+class DimensionDataChildIpAddressList(object):
+    """
+    DimensionData Child IP Address list
+    """
+
+    def __init__(self, id, name):
+        """"
+        Initialize an instance of :class:`DimensionDataChildIpAddressList`
+
+        :param id: GUID of the IP Address List key
+        :type  id: ``str``
+
+        :param name: Name of the IP Address List
+        :type  name: ``str``
+
+        """
+        self.id = id
+        self.name = name
+
+    def __repr__(self):
+        return ('<DimensionDataChildIpAddressList: id=%s, name=%s>'
+                % (self.id, self.name))
 
 
 class DimensionDataIpAddress(object):
@@ -1622,6 +1652,7 @@ class DimensionDataPortList(object):
     """
 
     def __init__(self, id, name, description, port_collection,
+                 child_port_list_lists,
                  state, create_time):
         """"
         Initialize an instance of :class:`DimensionDataPortList`
@@ -1638,6 +1669,9 @@ class DimensionDataPortList(object):
         :param port_collection: Collection of DimensionDataPort
         :type  port_collection: ``List``
 
+        :param child_port_list_lists: Collection of DimensionDataChildPort
+        :type  child_port_list_lists: ``List``
+
         :param state: Port list state
         :type  state: ``str``
 
@@ -1648,15 +1682,41 @@ class DimensionDataPortList(object):
         self.name = name
         self.description = description
         self.port_collection = port_collection
+        self.child_port_list_lists = child_port_list_lists
         self.state = state
         self.create_time = create_time
 
     def __repr__(self):
         return (
             "<DimensionDataPortList: id=%s, name=%s, description=%s, "
-            "port_collection=%s, state=%s, create_time=%s>"
+            "port_collection=%s, child_port_list=%s, state=%s, create_time=%s>"
             % (self.id, self.name, self.description,
-               self.port_collection, self.state, self.create_time))
+               self.port_collection, self.child_port_list, self.state,
+               self.create_time))
+
+
+class DimensionDataChildPortList(object):
+    """
+    DimensionData Child Port list
+    """
+
+    def __init__(self, id, name):
+        """"
+        Initialize an instance of :class:`DimensionDataChildIpAddressList`
+
+        :param id: GUID of the child port list key
+        :type  id: ``str``
+
+        :param name: Name of the child port List
+        :type  name: ``str``
+
+        """
+        self.id = id
+        self.name = name
+
+    def __repr__(self):
+        return ('<DimensionDataChildPortList: id=%s, name=%s>'
+                % (self.id, self.name))
 
 
 class DimensionDataPort(object):
