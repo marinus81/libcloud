@@ -129,203 +129,341 @@ class DimensionDataNodeDriver(NodeDriver):
         kwargs['region'] = self.selected_region
         return kwargs
 
-    def create_node(self, name, image, auth, ex_description,
-                    ex_network=None, ex_network_domain=None,
-                    ex_vlan=None, ex_primary_ipv4=None,
-                    ex_memory_gb=None,
-                    ex_cpu_specification=None,
-                    ex_is_started=True, ex_additional_nics_vlan=None,
-                    ex_additional_nics_ipv4=None,
-                    ex_primary_dns=None,
-                    ex_secondary_dns=None, **kwargs):
-        """
-        Create a new DimensionData node
+    # def create_node_mcp1(self, name, image, auth, ex_description,
+    #                      ex_network=None, ex_network_domain=None,
+    #                      ex_vlan=None, ex_primary_ipv4=None,
+    #                      ex_memory_gb=None,
+    #                      ex_cpu_specification=None,
+    #                      ex_is_started=True, ex_additional_nics_vlan=None,
+    #                      ex_additional_nics_ipv4=None,
+    #                      ex_primary_dns=None,
+    #                      ex_secondary_dns=None, **kwargs):
+    #     """
+    #     Create a new DimensionData node
+    #
+    #     :keyword    name:   String with a name for this new node (required)
+    #     :type       name:   ``str``
+    #
+    #     :keyword    image:  OS Image to boot on node. (required)
+    #     :type       image:  :class:`NodeImage` or ``str``
+    #
+    #     :keyword    auth:   Initial authentication information for the
+    #                         node. (If this is a customer LINUX
+    #                         image auth will be ignored)
+    #     :type       auth:   :class:`NodeAuthPassword` or ``str`` or ``None``
+    #
+    #     :keyword    ex_description:  description for this node (required)
+    #     :type       ex_description:  ``str``
+    #
+    #     :keyword    ex_network:  Network to create the node within
+    #                              (required unless using ex_network_domain
+    #                              or ex_primary_ipv4)
+    #
+    #     :type       ex_network: :class:`DimensionDataNetwork` or ``str``
+    #
+    #     :keyword    ex_network_domain:  Network Domain to create the node
+    #                                     (required unless using network
+    #                                     or ex_primary_ipv4)
+    #     :type       ex_network_domain: :class:`DimensionDataNetworkDomain`
+    #                                     or ``str``
+    #
+    #     :keyword    ex_primary_ipv4: Primary nics IPv4 Address
+    #                                  MCP1: (required unless ex_network)
+    #                                  MCP2: (required unless ex_vlan)
+    #     :type       ex_primary_ipv4: ``str``
+    #
+    #     :keyword    ex_vlan:  VLAN to create the node within
+    #                           (required unless using network)
+    #     :type       ex_vlan: :class:`DimensionDataVlan` or ``str``
+    #
+    #     :keyword    ex_memory_gb:  The amount of memory in GB for the server
+    #     :type       ex_memory_gb: ``int``
+    #
+    #     :keyword    ex_cpu_specification: The spec of CPU to deploy (optional)
+    #     :type       ex_cpu_specification:
+    #         :class:`DimensionDataServerCpuSpecification`
+    #
+    #     :keyword    ex_is_started:  Start server after creation? default
+    #                                true (required)
+    #     :type       ex_is_started:  ``bool``
+    #
+    #     :keyword    ex_additional_nics_vlan: (MCP2 Only) List of additional
+    #                                           nics to add by vlan
+    #     :type       ex_additional_nics_vlan: ``list`` of
+    #         :class:`DimensionDataVlan` or ``list`` of ``str``
+    #
+    #     :keyword    ex_additional_nics_ipv4: (MCP2 Only) List of additional
+    #                                           nics to add by ipv4 address
+    #     :type       ex_additional_nics_ipv4: ``list`` of ``str``
+    #
+    #     :keyword    ex_primary_dns: The node's primary DNS
+    #
+    #     :type       ex_primary_dns: ``str``
+    #
+    #     :keyword    ex_secondary_dns: The node's secondary DNS
+    #
+    #     :type       ex_secondary_dns: ``str``
+    #
+    #     :return: The newly created :class:`Node`.
+    #     :rtype: :class:`Node`
+    #     """
+    #     password = None
+    #     image_needs_auth = self._image_needs_auth(image)
+    #     if image_needs_auth:
+    #         if isinstance(auth, basestring):
+    #             auth_obj = NodeAuthPassword(password=auth)
+    #             password = auth
+    #         else:
+    #             auth_obj = self._get_and_check_auth(auth)
+    #             password = auth_obj.password
+    #
+    #     if (ex_network_domain is None and ex_network is None and
+    #                 ex_primary_ipv4 is None):
+    #         raise ValueError("One of ex_network_domain, ex_network, "
+    #                          "or ex_ipv6_primary must be specified")
+    #
+    #     server_elm = ET.Element('deployServer', {'xmlns': TYPES_URN})
+    #     ET.SubElement(server_elm, "name").text = name
+    #     ET.SubElement(server_elm, "description").text = ex_description
+    #     image_id = self._image_to_image_id(image)
+    #     ET.SubElement(server_elm, "imageId").text = image_id
+    #     ET.SubElement(server_elm, "start").text = str(ex_is_started).lower()
+    #     if password is not None:
+    #         ET.SubElement(server_elm, "administratorPassword").text = password
+    #
+    #     if ex_cpu_specification is not None:
+    #         cpu = ET.SubElement(server_elm, "cpu")
+    #         cpu.set('speed', ex_cpu_specification.performance)
+    #         cpu.set('count', str(ex_cpu_specification.cpu_count))
+    #         cpu.set('coresPerSocket',
+    #                 str(ex_cpu_specification.cores_per_socket))
+    #
+    #     if ex_memory_gb is not None:
+    #         ET.SubElement(server_elm, "memoryGb").text = str(ex_memory_gb)
+    #
+    #     if ex_network is not None:
+    #         network_elm = ET.SubElement(server_elm, "network")
+    #         network_id = self._network_to_network_id(ex_network)
+    #         ET.SubElement(network_elm, "networkId").text = network_id
+    #     elif ex_network_domain is None and ex_primary_ipv4 is not None:
+    #         network_elm = ET.SubElement(server_elm, "network")
+    #         ET.SubElement(network_elm, "privateIpv4").text = ex_primary_ipv4
+    #     elif ex_network_domain is not None:
+    #         net_domain_id = self._network_domain_to_network_domain_id(
+    #             ex_network_domain)
+    #         network_inf_elm = ET.SubElement(
+    #             server_elm, "networkInfo",
+    #             {'networkDomainId': net_domain_id}
+    #         )
+    #
+    #         if ex_vlan is not None:
+    #             vlan_id = self._vlan_to_vlan_id(ex_vlan)
+    #             pri_nic = ET.SubElement(network_inf_elm, "primaryNic")
+    #             ET.SubElement(pri_nic, "vlanId").text = vlan_id
+    #         elif ex_primary_ipv4 is not None:
+    #             pri_nic = ET.SubElement(network_inf_elm, "primaryNic")
+    #             ET.SubElement(pri_nic, "privateIpv4").text = ex_primary_ipv4
+    #         else:
+    #             raise ValueError("One of ex_vlan or ex_primary_ipv4 "
+    #                              "must be specified")
+    #
+    #         if isinstance(ex_additional_nics_ipv4, (list, tuple)):
+    #             for ipv4_nic in ex_additional_nics_ipv4:
+    #                 add_nic = ET.SubElement(network_inf_elm, "additionalNic")
+    #                 ET.SubElement(add_nic, "privateIpv4").text = ipv4_nic
+    #         elif ex_additional_nics_ipv4 is not None:
+    #             raise TypeError("ex_additional_nics_ipv4 must "
+    #                             "be None or a tuple/list")
+    #
+    #         if isinstance(ex_additional_nics_vlan, (list, tuple)):
+    #             for vlan_nic in ex_additional_nics_vlan:
+    #                 add_nic = ET.SubElement(network_inf_elm, "additionalNic")
+    #                 ET.SubElement(add_nic, "vlanId").text = vlan_nic
+    #         elif ex_additional_nics_vlan is not None:
+    #             raise TypeError("ex_additional_nics_vlan"
+    #                             "must be None or tuple/list")
+    #
+    #     if ex_primary_dns:
+    #         dns_elm = ET.SubElement(server_elm, "primaryDns")
+    #         dns_elm.text = ex_primary_dns
+    #
+    #     if ex_secondary_dns:
+    #         dns_elm = ET.SubElement(server_elm, "secondaryDns")
+    #         dns_elm.text = ex_secondary_dns
+    #
+    #     response = self.connection.request_with_orgId_api_2(
+    #         'server/deployServer',
+    #         method='POST',
+    #         data=ET.tostring(server_elm)).object
+    #
+    #     node_id = None
+    #     for info in findall(response, 'info', TYPES_URN):
+    #         if info.get('name') == 'serverId':
+    #             node_id = info.get('value')
+    #
+    #     node = self.ex_get_node_by_id(node_id)
+    #
+    #     if image_needs_auth:
+    #         if getattr(auth_obj, "generated", False):
+    #             node.extra['password'] = auth_obj.password
+    #
+    #     return node
+    #
+    #
+    def create_node_mcp1(self, name, image, auth, ex_description,
+                     ex_network=None,
+                     ex_vlan=None, ex_primary_ipv4=None,
+                     ex_memory_gb=None,
+                     ex_cpu_specification=None,
+                     ex_is_started=True, ex_additional_nics_vlan=None,
+                     ex_additional_nics_ipv4=None,
+                     ex_primary_dns=None,
+                     ex_secondary_dns=None, **kwargs):
+            """
+            Create a new DimensionData node
 
-        :keyword    name:   String with a name for this new node (required)
-        :type       name:   ``str``
+            :keyword    name:   String with a name for this new node (required)
+            :type       name:   ``str``
 
-        :keyword    image:  OS Image to boot on node. (required)
-        :type       image:  :class:`NodeImage` or ``str``
+            :keyword    image:  OS Image to boot on node. (required)
+            :type       image:  :class:`NodeImage` or ``str``
 
-        :keyword    auth:   Initial authentication information for the
-                            node. (If this is a customer LINUX
-                            image auth will be ignored)
-        :type       auth:   :class:`NodeAuthPassword` or ``str`` or ``None``
+            :keyword    auth:   Initial authentication information for the
+                                node. (If this is a customer LINUX
+                                image auth will be ignored)
+            :type       auth:   :class:`NodeAuthPassword` or ``str`` or ``None``
 
-        :keyword    ex_description:  description for this node (required)
-        :type       ex_description:  ``str``
+            :keyword    ex_description:  description for this node (required)
+            :type       ex_description:  ``str``
 
-        :keyword    ex_network:  Network to create the node within
-                                 (required unless using ex_network_domain
-                                 or ex_primary_ipv4)
+            :keyword    ex_network:  Network to create the node within
+                                     (required unless using ex_network_domain
+                                     or ex_primary_ipv4)
 
-        :type       ex_network: :class:`DimensionDataNetwork` or ``str``
+            :type       ex_network: :class:`DimensionDataNetwork` or ``str``
 
-        :keyword    ex_network_domain:  Network Domain to create the node
-                                        (required unless using network
-                                        or ex_primary_ipv4)
-        :type       ex_network_domain: :class:`DimensionDataNetworkDomain`
-                                        or ``str``
+            :keyword    ex_primary_ipv4: Primary nics IPv4 Address
+                                         MCP1: (required unless ex_network)
+                                         MCP2: (required unless ex_vlan)
+            :type       ex_primary_ipv4: ``str``
 
-        :keyword    ex_primary_ipv4: Primary nics IPv4 Address
-                                     MCP1: (required unless ex_network)
-                                     MCP2: (required unless ex_vlan)
-        :type       ex_primary_ipv4: ``str``
+            :keyword    ex_vlan:  VLAN to create the node within
+                                  (required unless using network)
+            :type       ex_vlan: :class:`DimensionDataVlan` or ``str``
 
-        :keyword    ex_vlan:  VLAN to create the node within
-                              (required unless using network)
-        :type       ex_vlan: :class:`DimensionDataVlan` or ``str``
+            :keyword    ex_memory_gb:  The amount of memory in GB for the server
+            :type       ex_memory_gb: ``int``
 
-        :keyword    ex_memory_gb:  The amount of memory in GB for the server
-        :type       ex_memory_gb: ``int``
+            :keyword    ex_cpu_specification: The spec of CPU to deploy (optional)
+            :type       ex_cpu_specification:
+                :class:`DimensionDataServerCpuSpecification`
 
-        :keyword    ex_cpu_specification: The spec of CPU to deploy (optional)
-        :type       ex_cpu_specification:
-            :class:`DimensionDataServerCpuSpecification`
+            :keyword    ex_is_started:  Start server after creation? default
+                                       true (required)
+            :type       ex_is_started:  ``bool``
 
-        :keyword    ex_is_started:  Start server after creation? default
-                                   true (required)
-        :type       ex_is_started:  ``bool``
+            :keyword    ex_additional_nics_vlan: (MCP2 Only) List of additional
+                                                  nics to add by vlan
+            :type       ex_additional_nics_vlan: ``list`` of
+                :class:`DimensionDataVlan` or ``list`` of ``str``
 
-        :keyword    ex_additional_nics_vlan: (MCP2 Only) List of additional
-                                              nics to add by vlan
-        :type       ex_additional_nics_vlan: ``list`` of
-            :class:`DimensionDataVlan` or ``list`` of ``str``
+            :keyword    ex_additional_nics_ipv4: (MCP2 Only) List of additional
+                                                  nics to add by ipv4 address
+            :type       ex_additional_nics_ipv4: ``list`` of ``str``
 
-        :keyword    ex_additional_nics_ipv4: (MCP2 Only) List of additional
-                                              nics to add by ipv4 address
-        :type       ex_additional_nics_ipv4: ``list`` of ``str``
+            :keyword    ex_primary_dns: The node's primary DNS
 
-        :keyword    ex_primary_dns: The node's primary DNS
+            :type       ex_primary_dns: ``str``
 
-        :type       ex_primary_dns: ``str``
+            :keyword    ex_secondary_dns: The node's secondary DNS
 
-        :keyword    ex_secondary_dns: The node's secondary DNS
+            :type       ex_secondary_dns: ``str``
 
-        :type       ex_secondary_dns: ``str``
+            :return: The newly created :class:`Node`.
+            :rtype: :class:`Node`
+            """
+            password = None
+            image_needs_auth = self._image_needs_auth(image)
+            if image_needs_auth:
+                if isinstance(auth, basestring):
+                    auth_obj = NodeAuthPassword(password=auth)
+                    password = auth
+                else:
+                    auth_obj = self._get_and_check_auth(auth)
+                    password = auth_obj.password
 
-        :return: The newly created :class:`Node`.
-        :rtype: :class:`Node`
-        """
-        password = None
-        image_needs_auth = self._image_needs_auth(image)
-        if image_needs_auth:
-            if isinstance(auth, basestring):
-                auth_obj = NodeAuthPassword(password=auth)
-                password = auth
-            else:
-                auth_obj = self._get_and_check_auth(auth)
-                password = auth_obj.password
 
-        if (ex_network_domain is None and ex_network is None and
-                    ex_primary_ipv4 is None):
-            raise ValueError("One of ex_network_domain, ex_network, "
-                             "or ex_ipv6_primary must be specified")
+            server_elm = ET.Element('deployServer', {'xmlns': TYPES_URN})
+            ET.SubElement(server_elm, "name").text = name
+            ET.SubElement(server_elm, "description").text = ex_description
+            image_id = self._image_to_image_id(image)
+            ET.SubElement(server_elm, "imageId").text = image_id
+            ET.SubElement(server_elm, "start").text = str(
+                ex_is_started).lower()
+            if password is not None:
+                ET.SubElement(server_elm,
+                              "administratorPassword").text = password
 
-        server_elm = ET.Element('deployServer', {'xmlns': TYPES_URN})
-        ET.SubElement(server_elm, "name").text = name
-        ET.SubElement(server_elm, "description").text = ex_description
-        image_id = self._image_to_image_id(image)
-        ET.SubElement(server_elm, "imageId").text = image_id
-        ET.SubElement(server_elm, "start").text = str(ex_is_started).lower()
-        if password is not None:
-            ET.SubElement(server_elm, "administratorPassword").text = password
+            if ex_cpu_specification is not None:
+                cpu = ET.SubElement(server_elm, "cpu")
+                cpu.set('speed', ex_cpu_specification.performance)
+                cpu.set('count', str(ex_cpu_specification.cpu_count))
+                cpu.set('coresPerSocket',
+                        str(ex_cpu_specification.cores_per_socket))
 
-        if ex_cpu_specification is not None:
-            cpu = ET.SubElement(server_elm, "cpu")
-            cpu.set('speed', ex_cpu_specification.performance)
-            cpu.set('count', str(ex_cpu_specification.cpu_count))
-            cpu.set('coresPerSocket',
-                    str(ex_cpu_specification.cores_per_socket))
+            if ex_memory_gb is not None:
+                ET.SubElement(server_elm, "memoryGb").text = str(ex_memory_gb)
 
-        if ex_memory_gb is not None:
-            ET.SubElement(server_elm, "memoryGb").text = str(ex_memory_gb)
+            if ex_network is not None:
+                network_elm = ET.SubElement(server_elm, "network")
+                network_id = self._network_to_network_id(ex_network)
+                ET.SubElement(network_elm, "networkId").text = network_id
 
-        if ex_network is not None:
-            network_elm = ET.SubElement(server_elm, "network")
-            network_id = self._network_to_network_id(ex_network)
-            ET.SubElement(network_elm, "networkId").text = network_id
-        elif ex_network_domain is None and ex_primary_ipv4 is not None:
-            network_elm = ET.SubElement(server_elm, "network")
-            ET.SubElement(network_elm, "privateIpv4").text = ex_primary_ipv4
-        elif ex_network_domain is not None:
-            net_domain_id = self._network_domain_to_network_domain_id(
-                ex_network_domain)
-            network_inf_elm = ET.SubElement(
-                server_elm, "networkInfo",
-                {'networkDomainId': net_domain_id}
-            )
+            if ex_primary_dns:
+                dns_elm = ET.SubElement(server_elm, "primaryDns")
+                dns_elm.text = ex_primary_dns
 
-            if ex_vlan is not None:
-                vlan_id = self._vlan_to_vlan_id(ex_vlan)
-                pri_nic = ET.SubElement(network_inf_elm, "primaryNic")
-                ET.SubElement(pri_nic, "vlanId").text = vlan_id
-            elif ex_primary_ipv4 is not None:
-                pri_nic = ET.SubElement(network_inf_elm, "primaryNic")
-                ET.SubElement(pri_nic, "privateIpv4").text = ex_primary_ipv4
-            else:
-                raise ValueError("One of ex_vlan or ex_primary_ipv4 "
-                                 "must be specified")
+            if ex_secondary_dns:
+                dns_elm = ET.SubElement(server_elm, "secondaryDns")
+                dns_elm.text = ex_secondary_dns
 
-            if isinstance(ex_additional_nics_ipv4, (list, tuple)):
-                for ipv4_nic in ex_additional_nics_ipv4:
-                    add_nic = ET.SubElement(network_inf_elm, "additionalNic")
-                    ET.SubElement(add_nic, "privateIpv4").text = ipv4_nic
-            elif ex_additional_nics_ipv4 is not None:
-                raise TypeError("ex_additional_nics_ipv4 must "
-                                "be None or a tuple/list")
+            response = self.connection.request_with_orgId_api_2(
+                'server/deployServer',
+                method='POST',
+                data=ET.tostring(server_elm)).object
 
-            if isinstance(ex_additional_nics_vlan, (list, tuple)):
-                for vlan_nic in ex_additional_nics_vlan:
-                    add_nic = ET.SubElement(network_inf_elm, "additionalNic")
-                    ET.SubElement(add_nic, "vlanId").text = vlan_nic
-            elif ex_additional_nics_vlan is not None:
-                raise TypeError("ex_additional_nics_vlan"
-                                "must be None or tuple/list")
+            node_id = None
+            for info in findall(response, 'info', TYPES_URN):
+                if info.get('name') == 'serverId':
+                    node_id = info.get('value')
 
-        if ex_primary_dns:
-            dns_elm = ET.SubElement(server_elm, "primaryDns")
-            dns_elm.text = ex_primary_dns
+            node = self.ex_get_node_by_id(node_id)
 
-        if ex_secondary_dns:
-            dns_elm = ET.SubElement(server_elm, "secondaryDns")
-            dns_elm.text = ex_secondary_dns
+            if image_needs_auth:
+                if getattr(auth_obj, "generated", False):
+                    node.extra['password'] = auth_obj.password
 
-        response = self.connection.request_with_orgId_api_2(
-            'server/deployServer',
-            method='POST',
-            data=ET.tostring(server_elm)).object
+            return node
 
-        node_id = None
-        for info in findall(response, 'info', TYPES_URN):
-            if info.get('name') == 'serverId':
-                node_id = info.get('value')
-
-        node = self.ex_get_node_by_id(node_id)
-
-        if image_needs_auth:
-            if getattr(auth_obj, "generated", False):
-                node.extra['password'] = auth_obj.password
-
-        return node
-
-    def add_node(self, name, ex_description,
-                 image,
-                 auth,
-                 ex_network_domain,
-                 ex_is_started=True,
-                 ex_cpu_specification=None,
-                 ex_memory_gb=None,
-                 ex_primary_nic_private_ipv4=None,
-                 ex_primary_nic_vlan=None,
-                 ex_primary_nic_network_adapter=None,
-                 ex_additional_nics=None,
-                 ex_primary_dns=None,
-                 ex_secondary_dns=None,
-                 ex_ipv4_gateway=None,
-                 ex_disks=None,
-                 ex_microsoft_time_zone=None,
-                 ):
+    def create_node(self, name,
+                image,
+                auth,
+                ex_network_domain=None,
+                ex_primary_nic_private_ipv4=None,
+                ex_primary_nic_vlan=None,
+                ex_primary_nic_network_adapter=None,
+                ex_additional_nics=None,
+                ex_description=None,
+                ex_disks=None,
+                ex_cpu_specification=None,
+                ex_memory_gb=None,
+                ex_is_started=True,
+                ex_primary_dns=None,
+                ex_secondary_dns=None,
+                ex_ipv4_gateway=None,
+                ex_microsoft_time_zone=None,
+                **kwargs
+                ):
         """
         Create a new DimensionData node. For MCP2 only.
 
@@ -340,7 +478,7 @@ class DimensionDataNodeDriver(NodeDriver):
                             image auth will be ignored)
         :type       auth:   :class:`NodeAuthPassword` or ``str`` or ``None``
 
-        :keyword    ex_description:  description for this node (required)
+        :keyword    ex_description:  description for this node (optional)
         :type       ex_description:  ``str``
 
 
@@ -417,7 +555,8 @@ class DimensionDataNodeDriver(NodeDriver):
         not necessary to include a diskelement for every disk; only those
         that you wish to set a disk speed value for. Note that scsiId 7
         cannot be used.Up to 13 disks can be present in addition to the
-        required OS disk on SCSI ID 0.
+        required OS disk on SCSI ID 0. Refer to
+        https://docs.mcp-services.net/x/UwIu for disk speeds specification
 
         :type       ex_disks: List or tuple of :class:'DimensionDataServerDisk`
 
@@ -436,141 +575,175 @@ class DimensionDataNodeDriver(NodeDriver):
         :return: The newly created :class:`Node`.
         :rtype: :class:`Node`
         """
-        password = None
-        image_needs_auth = self._image_needs_auth(image)
-        if image_needs_auth:
-            if isinstance(auth, basestring):
-                auth_obj = NodeAuthPassword(password=auth)
-                password = auth
-            else:
-                auth_obj = self._get_and_check_auth(auth)
-                password = auth_obj.password
 
-        if ex_network_domain is None:
-            raise ValueError("ex_network_domain must be specified")
+        if ex_network_domain is not None and 'ex_network' in kwargs:
+            raise ValueError('You can only supply ex_network_domain for MCP2 '
+                             'or ex_network for MCP1')
 
-        server_elm = ET.Element('deployServer', {'xmlns': TYPES_URN})
-        ET.SubElement(server_elm, "name").text = name
-        ET.SubElement(server_elm, "description").text = ex_description
-        image_id = self._image_to_image_id(image)
-        ET.SubElement(server_elm, "imageId").text = image_id
-        ET.SubElement(server_elm, "start").text = str(ex_is_started).lower()
-        if password is not None:
-            ET.SubElement(server_elm, "administratorPassword").text = password
+        # Handle MCP1
+        if 'ex_network' in kwargs:
+            new_node = self.create_node_mcp1(
+                name=name, image=image, auth=auth,
+                ex_network=kwargs.get("ex_network"),
+                ex_description=ex_description,
+                ex_memory_gb=ex_memory_gb,
+                ex_cpu_specification=ex_cpu_specification,
+                ex_is_started=ex_is_started,
+                ex_primary_ipv4=ex_primary_nic_private_ipv4,
+                ex_disks=ex_disks,
+                ex_additional_nics_vlan=kwargs.get("ex_additional_nics_vlan"),
+                ex_additional_nics_ipv4=kwargs.get("ex_additional_nics_ipv4"),
+                ex_primary_dns=ex_primary_dns,
+                ex_secondary_dns=ex_secondary_dns
+            )
+        else:
+            # Handle MCP2 legacy
+            if 'ex_vlan' in kwargs:
+                ex_primary_nic_vlan = kwargs.get('ex_vlan')
 
-        if ex_cpu_specification is not None:
-            cpu = ET.SubElement(server_elm, "cpu")
-            cpu.set('speed', ex_cpu_specification.performance)
-            cpu.set('count', str(ex_cpu_specification.cpu_count))
-            cpu.set('coresPerSocket',
-                    str(ex_cpu_specification.cores_per_socket))
+            if 'ex_primary_ipv4' in kwargs:
+                ex_primary_nic_private_ipv4 = kwargs.get(
+                    'ex_primary_ipv4')
 
-        if ex_memory_gb is not None:
-            ET.SubElement(server_elm, "memoryGb").text = str(ex_memory_gb)
+            # Handle MCP2 latest
+            password = None
+            image_needs_auth = self._image_needs_auth(image)
+            if image_needs_auth:
+                if isinstance(auth, basestring):
+                    auth_obj = NodeAuthPassword(password=auth)
+                    password = auth
+                else:
+                    auth_obj = self._get_and_check_auth(auth)
+                    password = auth_obj.password
 
-        if (ex_primary_nic_private_ipv4 is None and
+            if ex_network_domain is None:
+                raise ValueError("ex_network_domain must be specified")
+
+            server_elm = ET.Element('deployServer', {'xmlns': TYPES_URN})
+            ET.SubElement(server_elm, "name").text = name
+            ET.SubElement(server_elm, "description").text = ex_description
+            image_id = self._image_to_image_id(image)
+            ET.SubElement(server_elm, "imageId").text = image_id
+            ET.SubElement(server_elm, "start").text = str(ex_is_started).lower()
+            if password is not None:
+                ET.SubElement(server_elm, "administratorPassword").text = password
+
+            if ex_cpu_specification is not None:
+                cpu = ET.SubElement(server_elm, "cpu")
+                cpu.set('speed', ex_cpu_specification.performance)
+                cpu.set('count', str(ex_cpu_specification.cpu_count))
+                cpu.set('coresPerSocket',
+                        str(ex_cpu_specification.cores_per_socket))
+
+            if ex_memory_gb is not None:
+                ET.SubElement(server_elm, "memoryGb").text = str(ex_memory_gb)
+
+            if (ex_primary_nic_private_ipv4 is None and
                     ex_primary_nic_vlan is None):
-            raise ValueError("Either ex_vlan or ex_primary_ipv4 "
-                             "must be specified. Not Both")
+                raise ValueError("Missing argument. Either "
+                                 "ex_primary_nic_private_ipv4 or "
+                                 "ex_primary_nic_vlan "
+                                 "must be specified.")
 
-        if (ex_primary_nic_private_ipv4 is not None and
+            if (ex_primary_nic_private_ipv4 is not None and
                     ex_primary_nic_vlan is not None):
-            raise ValueError("Either ex_vlan or ex_primary_ipv4 "
-                             "must be specified. Not both.")
+                raise ValueError("Either ex_primary_nic_private_ipv4 or "
+                                 "ex_primary_nic_vlan "
+                                 "be specified. Not both.")
 
-        network_elm = ET.SubElement(server_elm, "networkInfo")
-        if ex_network_domain is None:
-            raise TypeError("ex_network_domain is required")
+            network_elm = ET.SubElement(server_elm, "networkInfo")
+            if ex_network_domain is None:
+                raise TypeError("ex_network_domain is required")
 
-        net_domain_id = self._network_domain_to_network_domain_id(
-            ex_network_domain)
+            net_domain_id = self._network_domain_to_network_domain_id(
+                ex_network_domain)
 
-        network_elm.set('networkDomainId', net_domain_id)
+            network_elm.set('networkDomainId', net_domain_id)
 
-        pri_nic = ET.SubElement(network_elm, 'primaryNic')
+            pri_nic = ET.SubElement(network_elm, 'primaryNic')
 
-        if ex_primary_nic_private_ipv4 is not None:
-            ET.SubElement(pri_nic,
-                          'privateIpv4').text = ex_primary_nic_private_ipv4
+            if ex_primary_nic_private_ipv4 is not None:
+                ET.SubElement(pri_nic,
+                              'privateIpv4').text = ex_primary_nic_private_ipv4
 
-        if ex_primary_nic_vlan is not None:
-            vlan_id = self._vlan_to_vlan_id(ex_primary_nic_vlan)
-            ET.SubElement(pri_nic, 'vlanId').text = vlan_id
+            if ex_primary_nic_vlan is not None:
+                vlan_id = self._vlan_to_vlan_id(ex_primary_nic_vlan)
+                ET.SubElement(pri_nic, 'vlanId').text = vlan_id
 
-        if ex_primary_nic_network_adapter is not None:
-            ET.SubElement(pri_nic,
-                          "networkAdapter").text = \
-                ex_primary_nic_network_adapter
+            if ex_primary_nic_network_adapter is not None:
+                ET.SubElement(pri_nic,
+                              "networkAdapter").text = \
+                    ex_primary_nic_network_adapter
 
-        if isinstance(ex_additional_nics, (list, tuple)):
-            for nic in ex_additional_nics:
-                additional_nic = ET.SubElement(network_elm, 'additionalNic')
+            if isinstance(ex_additional_nics, (list, tuple)):
+                for nic in ex_additional_nics:
+                    additional_nic = ET.SubElement(network_elm, 'additionalNic')
 
-                if (nic.private_ip_v4 is None and
-                            nic.network_adapter_name is None):
-                    raise ValueError("Either ex_vlan or ex_primary_ipv4 "
-                                     "must be specified. Not both")
+                    if (nic.private_ip_v4 is None and
+                                nic.network_adapter_name is None):
+                        raise ValueError("Either ex_vlan or ex_primary_ipv4 "
+                                         "must be specified.")
 
-                if (nic.private_ip_v4 is not None and
-                            nic.network_adapter_name is not None):
-                    raise ValueError("Either ex_vlan or ex_primary_ipv4 "
-                                     "must be specified. Not both")
+                    if (nic.private_ip_v4 is not None and
+                                nic.network_adapter_name is not None):
+                        raise ValueError("Either ex_vlan or ex_primary_ipv4 "
+                                         "must be specified. Not both")
 
-                if nic.private_ip_v4 is not None:
-                    ET.SubElement(additional_nic,
-                                  'privateIpv4').text = nic.private_ip_v4
+                    if nic.private_ip_v4 is not None:
+                        ET.SubElement(additional_nic,
+                                      'privateIpv4').text = nic.private_ip_v4
 
-                if nic.vlan is not None:
-                    vlan_id = self._vlan_to_vlan_id(nic.vlan)
-                    ET.SubElement(additional_nic, 'vlanId').text = vlan_id
+                    if nic.vlan is not None:
+                        vlan_id = self._vlan_to_vlan_id(nic.vlan)
+                        ET.SubElement(additional_nic, 'vlanId').text = vlan_id
 
-                if nic.network_adapter_name is not None:
-                    ET.SubElement(additional_nic,
-                                  "networkAdapter").text = \
-                        nic.network_adapter_name
-        elif ex_additional_nics is not None:
-            raise TypeError("ex_additional_NICs must be None or tuple/list")
+                    if nic.network_adapter_name is not None:
+                        ET.SubElement(additional_nic,
+                                      "networkAdapter").text = \
+                            nic.network_adapter_name
+            elif ex_additional_nics is not None:
+                raise TypeError("ex_additional_NICs must be None or tuple/list")
 
-        if ex_primary_dns:
-            dns_elm = ET.SubElement(server_elm, "primaryDns")
-            dns_elm.text = ex_primary_dns
+            if ex_primary_dns:
+                dns_elm = ET.SubElement(server_elm, "primaryDns")
+                dns_elm.text = ex_primary_dns
 
-        if ex_secondary_dns:
-            dns_elm = ET.SubElement(server_elm, "secondaryDns")
-            dns_elm.text = ex_secondary_dns
+            if ex_secondary_dns:
+                dns_elm = ET.SubElement(server_elm, "secondaryDns")
+                dns_elm.text = ex_secondary_dns
 
-        if ex_ipv4_gateway:
-            ET.SubElement(server_elm, "ipv4Gateway").text = ex_ipv4_gateway
+            if ex_ipv4_gateway:
+                ET.SubElement(server_elm, "ipv4Gateway").text = ex_ipv4_gateway
 
-        if isinstance(ex_disks, (list, tuple)):
-            for disk in ex_disks:
-                disk_elm = ET.SubElement(server_elm, 'disk')
-                disk_elm.set('scsiId', disk.scsi_id)
-                disk_elm.set('speed', disk.speed)
-        elif ex_disks is not None:
-            raise TypeError("ex_disks must be None or tuple/list")
+            if isinstance(ex_disks, (list, tuple)):
+                for disk in ex_disks:
+                    disk_elm = ET.SubElement(server_elm, 'disk')
+                    disk_elm.set('scsiId', disk.scsi_id)
+                    disk_elm.set('speed', disk.speed)
+            elif ex_disks is not None:
+                raise TypeError("ex_disks must be None or tuple/list")
 
-        if ex_microsoft_time_zone:
-            ET.SubElement(server_elm,
-                          "microsoftTimeZone").text = ex_microsoft_time_zone
+            if ex_microsoft_time_zone:
+                ET.SubElement(server_elm,
+                              "microsoftTimeZone").text = ex_microsoft_time_zone
 
-        response = self.connection.request_with_orgId_api_2(
-            'server/deployServer',
-            method='POST',
-            data=ET.tostring(server_elm)).object
+            response = self.connection.request_with_orgId_api_2(
+                'server/deployServer',
+                method='POST',
+                data=ET.tostring(server_elm)).object
 
-        node_id = None
-        for info in findall(response, 'info', TYPES_URN):
-            if info.get('name') == 'serverId':
-                node_id = info.get('value')
+            node_id = None
+            for info in findall(response, 'info', TYPES_URN):
+                if info.get('name') == 'serverId':
+                    node_id = info.get('value')
 
-        node = self.ex_get_node_by_id(node_id)
+            new_node = self.ex_get_node_by_id(node_id)
 
-        if image_needs_auth:
-            if getattr(auth_obj, "generated", False):
-                node.extra['password'] = auth_obj.password
+            if image_needs_auth:
+                if getattr(auth_obj, "generated", False):
+                    new_node.extra['password'] = auth_obj.password
 
-        return node
+        return new_node
 
     def destroy_node(self, node):
         """
@@ -2970,7 +3143,7 @@ class DimensionDataNodeDriver(NodeDriver):
         delete_ip_address_list = \
             ET.Element('deleteIpAddressList', {'xmlns': TYPES_URN, 'id': self
                        ._ip_address_list_to_ip_address_list_id(
-                        ex_ip_address_list)})
+                ex_ip_address_list)})
 
         response = self.connection.request_with_orgId_api_2(
             'network/deleteIpAddressList',
@@ -2991,8 +3164,8 @@ class DimensionDataNodeDriver(NodeDriver):
         :rtype: ``list`` of :class:`DimensionDataPortList`
         """
         params = {'networkDomainId':
-                  self._network_domain_to_network_domain_id(
-                          ex_network_domain)}
+            self._network_domain_to_network_domain_id(
+                ex_network_domain)}
         response = self.connection.request_with_orgId_api_2(
             'network/portList', params=params).object
         return self._to_port_lists(response)
@@ -3009,7 +3182,7 @@ class DimensionDataNodeDriver(NodeDriver):
         """
 
         url_path = ('network/portList/%s' % self._port_list_to_port_list_id(
-                ex_port_list))
+            ex_port_list))
         response = self.connection.request_with_orgId_api_2(
             url_path).object
         return self._to_port_list(response)
