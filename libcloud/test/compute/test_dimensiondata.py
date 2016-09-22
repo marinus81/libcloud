@@ -1048,10 +1048,41 @@ class DimensionDataTests(unittest.TestCase, TestCaseMixin):
         specific_source_ip_rule = \
         list(filter(lambda x: x.name == 'SpecificSourceIP',
                     rules))[0]
+        specific_source_ip_rule.source.any_ip = False
+        specific_source_ip_rule.source.ip_address = '10.0.0.1'
+        specific_source_ip_rule.source.ip_prefix_size = '15'
         rule = self.driver.ex_create_firewall_rule(net,
                                                    specific_source_ip_rule,
                                                    'FIRST')
         self.assertEqual(rule.id, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+
+    def test_ex_create_firewall_rule_with_any_ip(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rules = self.driver.ex_list_firewall_rules(net)
+        specific_source_ip_rule = \
+        list(filter(lambda x: x.name == 'SpecificSourceIP',
+                    rules))[0]
+        specific_source_ip_rule.source.any_ip = True
+        rule = self.driver.ex_create_firewall_rule(net,
+                                                   specific_source_ip_rule,
+                                                   'FIRST')
+        self.assertEqual(rule.id, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+
+
+    def test_ex_create_firewall_rule_ip_prefix_size(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_list_firewall_rules(net)[0]
+        rule.source.address_list_id = None
+        rule.source.any_ip = False
+        rule.source.ip_address = '10.2.1.1'
+        rule.source.ip_prefix_size = '10'
+        rule.destination.address_list_id = None
+        rule.destination.any_ip = False
+        rule.destination.ip_address = '10.0.0.1'
+        rule.destination.ip_prefix_size = '20'
+        self.driver.ex_create_firewall_rule(net, rule, 'LAST')
 
     def test_ex_create_firewall_rule_address_list(self):
         net = self.driver.ex_get_network_domain(
@@ -1067,6 +1098,18 @@ class DimensionDataTests(unittest.TestCase, TestCaseMixin):
         rule = self.driver.ex_list_firewall_rules(net)[0]
         rule.source.port_list_id = '12345'
         rule.destination.port_list_id = '12345'
+        self.driver.ex_create_firewall_rule(net, rule, 'LAST')
+
+    def test_ex_create_firewall_rule_port(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_list_firewall_rules(net)[0]
+        rule.source.port_list_id = None
+        rule.source.port_begin = '8000'
+        rule.source.port_end = '8005'
+        rule.destination.port_list_id = None
+        rule.destination.port_begin = '7000'
+        rule.destination.port_end = '7005'
         self.driver.ex_create_firewall_rule(net, rule, 'LAST')
 
     def test_ex_create_firewall_rule_ALL_VALUES(self):
@@ -1129,6 +1172,147 @@ class DimensionDataTests(unittest.TestCase, TestCaseMixin):
                                                 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
         result = self.driver.ex_delete_firewall_rule(rule)
         self.assertTrue(result)
+
+    def test_ex_edit_firewall_rule(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_get_firewall_rule(
+            net, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+        rule.source.any_ip = True
+        result = self.driver.ex_edit_firewall_rule(rule=rule, position='LAST')
+        self.assertTrue(result)
+
+    def test_ex_edit_firewall_rule_source_ipaddresslist(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_get_firewall_rule(
+            net, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+        rule.source.address_list_id = '802abc9f-45a7-4efb-9d5a-810082368222'
+        rule.source.any_ip = False
+        rule.source.ip_address = '10.0.0.1'
+        rule.source.ip_prefix_size = 10
+        result = self.driver.ex_edit_firewall_rule(rule=rule, position='LAST')
+        self.assertTrue(result)
+
+    def test_ex_edit_firewall_rule_destination_ipaddresslist(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_get_firewall_rule(
+            net, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+        rule.destination.address_list_id = '802abc9f-45a7-4efb-9d5a-810082368222'
+        rule.destination.any_ip = False
+        rule.destination.ip_address = '10.0.0.1'
+        rule.destination.ip_prefix_size = 10
+        result = self.driver.ex_edit_firewall_rule(rule=rule, position='LAST')
+        self.assertTrue(result)
+
+    def test_ex_edit_firewall_rule_destination_ipaddress(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_get_firewall_rule(
+            net, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+        rule.source.address_list_id = None
+        rule.source.any_ip = False
+        rule.source.ip_address = '10.0.0.1'
+        rule.source.ip_prefix_size = '10'
+        result = self.driver.ex_edit_firewall_rule(rule=rule, position='LAST')
+        self.assertTrue(result)
+
+    def test_ex_edit_firewall_rule_source_ipaddress(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_get_firewall_rule(
+            net, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+        rule.destination.address_list_id = None
+        rule.destination.any_ip = False
+        rule.destination.ip_address = '10.0.0.1'
+        rule.destination.ip_prefix_size = '10'
+        result = self.driver.ex_edit_firewall_rule(rule=rule, position='LAST')
+        self.assertTrue(result)
+
+    def test_ex_edit_firewall_rule_with_relative_rule(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_get_firewall_rule(
+            net, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+        placement_rule = self.driver.ex_list_firewall_rules(
+            network_domain=net)[-1]
+        result = self.driver.ex_edit_firewall_rule(
+            rule=rule, position='BEFORE',
+            relative_rule_for_position=placement_rule)
+        self.assertTrue(result)
+
+    def test_ex_edit_firewall_rule_with_relative_rule_by_name(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_get_firewall_rule(
+            net, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+        placement_rule = self.driver.ex_list_firewall_rules(
+            network_domain=net)[-1]
+        result = self.driver.ex_edit_firewall_rule(
+            rule=rule, position='BEFORE',
+            relative_rule_for_position=placement_rule.name)
+        self.assertTrue(result)
+
+
+    def test_ex_edit_firewall_rule_source_portlist(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_get_firewall_rule(
+            net, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+        rule.source.port_list_id = '802abc9f-45a7-4efb-9d5a-810082368222'
+        result = self.driver.ex_edit_firewall_rule(rule=rule, position='LAST')
+        self.assertTrue(result)
+
+    def test_ex_edit_firewall_rule_source_port(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_get_firewall_rule(
+            net, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+        rule.source.port_list_id = None
+        rule.source.port_begin = '3'
+        rule.source.port_end = '10'
+        result = self.driver.ex_edit_firewall_rule(rule=rule, position='LAST')
+        self.assertTrue(result)
+
+    def test_ex_edit_firewall_rule_destination_portlist(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_get_firewall_rule(
+            net, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+        rule.destination.port_list_id = '802abc9f-45a7-4efb-9d5a-810082368222'
+        result = self.driver.ex_edit_firewall_rule(rule=rule, position='LAST')
+        self.assertTrue(result)
+
+    def test_ex_edit_firewall_rule_destination_port(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_get_firewall_rule(
+            net, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+        rule.destination.port_list_id = None
+        rule.destination.port_begin = '3'
+        rule.destination.port_end = '10'
+        result = self.driver.ex_edit_firewall_rule(rule=rule, position='LAST')
+        self.assertTrue(result)
+
+    def test_ex_edit_firewall_rule_invalid_position_fail(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_get_firewall_rule(
+            net, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+        with self.assertRaises(ValueError):
+            self.driver.ex_edit_firewall_rule(rule=rule, position='BEFORE')
+
+    def test_ex_edit_firewall_rule_invalid_position_relative_rule_fail(self):
+        net = self.driver.ex_get_network_domain(
+            '8cdfd607-f429-4df6-9352-162cfc0891be')
+        rule = self.driver.ex_get_firewall_rule(
+            net, 'd0a20f59-77b9-4f28-a63b-e58496b73a6c')
+        relative_rule = self.driver.ex_list_firewall_rules(
+            network_domain=net)[-1]
+        with self.assertRaises(ValueError):
+            self.driver.ex_edit_firewall_rule(rule=rule, position='FIRST',
+                                              relative_rule_for_position=relative_rule)
 
     def test_ex_create_nat_rule(self):
         net = self.driver.ex_get_network_domain(

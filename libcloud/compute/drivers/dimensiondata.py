@@ -1957,7 +1957,7 @@ class DimensionDataNodeDriver(NodeDriver):
         return rule
 
     def ex_edit_firewall_rule(self, rule, position,
-                              position_relative_to_rule=None):
+                              relative_rule_for_position=None):
         """
         Edit a firewall rule
 
@@ -1971,9 +1971,9 @@ class DimensionDataNodeDriver(NodeDriver):
                          Without: 'FIRST' or 'LAST'
         :type  position: ``str``
 
-        :param position_relative_to_rule: The rule or rule name in
+        :param relative_rule_for_position: The rule or rule name in
                                           which to decide positioning by
-        :type  position_relative_to_rule:
+        :type  relative_rule_for_position:
             :class:`DimensionDataFirewallRule` or ``str``
 
         :rtype: ``bool``
@@ -1987,7 +1987,7 @@ class DimensionDataNodeDriver(NodeDriver):
         ET.SubElement(edit_node, "action").text = rule.action
         ET.SubElement(edit_node, "protocol").text = rule.protocol
 
-        # Setup source port rule
+        # Source address
         source = ET.SubElement(edit_node, "source")
         if rule.source.address_list_id is not None:
             source_ip = ET.SubElement(source, 'ipAddressListId')
@@ -2001,6 +2001,8 @@ class DimensionDataNodeDriver(NodeDriver):
                 if rule.source.ip_prefix_size is not None:
                     source_ip.set('prefixSize',
                                   str(rule.source.ip_prefix_size))
+
+        # Setup source port rule
         if rule.source.port_list_id is not None:
             source_port = ET.SubElement(source, 'portListId')
             source_port.text = rule.source.port_list_id
@@ -2035,16 +2037,16 @@ class DimensionDataNodeDriver(NodeDriver):
         # Set up positioning of rule
         ET.SubElement(edit_node, "enabled").text = str(rule.enabled).lower()
         placement = ET.SubElement(edit_node, "placement")
-        if position_relative_to_rule is not None:
+        if relative_rule_for_position is not None:
             if position not in positions_with_rule:
                 raise ValueError("When position_relative_to_rule is specified"
                                  " position must be %s"
                                  % ', '.join(positions_with_rule))
-            if isinstance(position_relative_to_rule,
+            if isinstance(relative_rule_for_position,
                           DimensionDataFirewallRule):
-                rule_name = position_relative_to_rule.name
+                rule_name = relative_rule_for_position.name
             else:
-                rule_name = position_relative_to_rule
+                rule_name = relative_rule_for_position
             placement.set('relativeToRule', rule_name)
         else:
             if position not in positions_without_rule:
