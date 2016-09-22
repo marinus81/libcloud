@@ -2775,6 +2775,13 @@ class DimensionDataNodeDriver(NodeDriver):
             if has_network_info else \
             element.find(fixxpath('nic', TYPES_URN)).get('privateIpv4')
 
+        additional_ips = element.findall(fixxpath('networkInfo/additionalNic', TYPES_URN))
+        private_ips=[private_ip] if private_ip is not None else []
+
+        if has_network_info:
+          for pip in additional_ips:
+             private_ips.append(pip.get('privateIpv4'))
+
         extra['ipv6'] = element.find(
             fixxpath('networkInfo/primaryNic', TYPES_URN)) \
             .get('ipv6') \
@@ -2785,7 +2792,7 @@ class DimensionDataNodeDriver(NodeDriver):
                  name=findtext(element, 'name', TYPES_URN),
                  state=node_state,
                  public_ips=[public_ip] if public_ip is not None else [],
-                 private_ips=[private_ip] if private_ip is not None else [],
+                 private_ips=private_ips,
                  size=self.list_sizes()[0],
                  image=NodeImage(extra['sourceImageId'],
                                  extra['OS_displayName'],
